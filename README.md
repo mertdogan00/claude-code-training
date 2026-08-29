@@ -31,11 +31,11 @@ A Claude **Pro** plan or higher is required to use Claude Code
 | `docs/setup/` | install guides: macOS · Windows · Linux |
 | `exercises/stage-3-context/` | feel what context and CLAUDE.md change: the before/after exercise |
 | `exercises/stage-4-extend/` | skills, plugins and MCP: extend Claude Code hands-on |
-| `exercises/stage-5-build/` | the finale: four build scenarios (the room votes on stage) |
-| `examples/revenue-report/` | COMPLETE working app: weekly revenue chart, Node + built-in SQLite, `npm run dev` |
-| `examples/click-game/` | COMPLETE working game: reflex clicker with a top-5 scoreboard, same recipe |
+| `exercises/stage-5-build/` | the finale: the room votes ONE big app; the winner is born live from one prompt |
+| `prompts/apps/` | SIX one-shot mega-prompts (dashboard, game, stok, randevu, bütçe, QR menü), team-role structured |
+| `data/` | sample sales CSV the dashboard prompt reads |
 | `prompts/` | ready-to-paste Turkish prompts used in the training |
-| `skills/` | two finished skills to read, install and run (`pdf-summarizer`, `toplanti-notu`) |
+| `skills/` | FOUR finished skills to install and run (`pdf-summarizer`, `toplanti-notu`, `klasor-raporu`, `sosyal-post`) |
 | `commands.md` | the cheat sheet: every command used on stage |
 | `resources.md` | official links: docs, plugin marketplace, MCP, models |
 | `after-training.md` | your path after the event: what to build first |
@@ -44,7 +44,7 @@ A Claude **Pro** plan or higher is required to use Claude Code
 
 1. Read `CLAUDE.md` (it is short, and it is the whole trick).
 2. Redo `exercises/stage-3-context/` on your own machine.
-3. Install the skill in `skills/pdf-summarizer/` and run it on a real file.
-4. Pick ONE boring task from your own life and build it in `exercises/stage-5-build/`.
+3. Install a skill from `skills/` and run it on a real file.
+4. Paste ONE mega-prompt from `prompts/apps/` and watch a whole app get born; then change one feature.
 
 Start small, grow it one piece at a time.

@@ -1,4 +1,4 @@
-# Ready prompts (Turkish)
+# Prompt kütüphanesi
 
 Paste these as-is; adjust the bracketed parts. Speaking Turkish to Claude Code is not a
 compromise: you express intent better in your own language.
@@ -23,3 +23,8 @@ compromise: you express intent better in your own language.
 kartı, bir adet iletişim butonu. Mobilde de düzgün görünsün."
 
 The difference is not magic words: it is CONTEXT and CONSTRAINTS.
+
+## Mega-promptlar (uygulama reçeteleri)
+
+Tam uygulamaları TEK atışta doğuran, ekip-rollü uzun reçeteler: [apps/](apps/) klasöründe,
+tablosuyla. Eğitimin finali de oradan çıkar.
