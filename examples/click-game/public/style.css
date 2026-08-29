@@ -1,0 +1,30 @@
+* { margin: 0; padding: 0; box-sizing: border-box }
+body {
+  font-family: system-ui, sans-serif; background: #16150f; color: #f0eee9;
+  height: 100vh; display: grid; grid-template: auto 1fr / 1fr 240px;
+}
+header {
+  grid-column: 1 / -1; display: flex; gap: 34px; padding: 16px 24px;
+  border-bottom: 1px solid #2c2921; font-size: .95rem; color: #a9a399;
+}
+header b { color: #d97757; font-size: 1.2rem; margin-left: 6px }
+#arena { position: relative; overflow: hidden }
+#intro {
+  position: absolute; inset: 0; display: grid; place-content: center;
+  text-align: center; gap: 14px; background: rgba(22,21,15,.92); z-index: 2;
+}
+#intro p { color: #a9a399; max-width: 340px }
+input, button {
+  font: inherit; padding: 10px 16px; border-radius: 10px;
+  border: 1px solid #3a372f; background: #201e17; color: inherit;
+}
+button { background: #d97757; border: 0; cursor: pointer }
+.target {
+  position: absolute; border-radius: 50%; cursor: crosshair;
+  background: radial-gradient(circle at 35% 35%, #f0a884, #d97757 60%, #a04f33);
+  box-shadow: 0 0 30px rgba(217,119,87,.5);
+}
+aside { border-left: 1px solid #2c2921; padding: 20px }
+aside h2 { font-size: .85rem; letter-spacing: .12em; color: #a9a399; margin-bottom: 12px }
+#board li { padding: 6px 0; border-bottom: 1px dashed #2c2921 }
+#board b { color: #d97757; float: right }

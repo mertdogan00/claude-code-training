@@ -1,0 +1,4 @@
+# runtime artifacts
+examples/**/data.db
+examples/**/scores.db
+node_modules/

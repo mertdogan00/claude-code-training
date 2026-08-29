@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Haftalık Gelir Raporu</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>Haftalık Gelir</h1>
+    <p id="summary">yükleniyor…</p>
+    <section id="chart" aria-label="günlere göre gelir"></section>
+    <form id="edit">
+      <select id="day"></select>
+      <input id="total" type="number" min="0" step="50" placeholder="tutar ₺" required>
+      <button>Güncelle</button>
+    </form>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

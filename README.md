@@ -31,9 +31,11 @@ A Claude **Pro** plan or higher is required to use Claude Code
 | `docs/setup/` | install guides: macOS · Windows · Linux |
 | `exercises/stage-3-context/` | feel what context and CLAUDE.md change: the before/after exercise |
 | `exercises/stage-4-extend/` | skills, plugins and MCP: extend Claude Code hands-on |
-| `exercises/stage-5-build/` | the finale: three build scenarios (the room votes on stage) |
+| `exercises/stage-5-build/` | the finale: four build scenarios (the room votes on stage) |
+| `examples/revenue-report/` | COMPLETE working app: weekly revenue chart, Node + built-in SQLite, `npm run dev` |
+| `examples/click-game/` | COMPLETE working game: reflex clicker with a top-5 scoreboard, same recipe |
 | `prompts/` | ready-to-paste Turkish prompts used in the training |
-| `skills/` | a finished example skill to read, install and run |
+| `skills/` | two finished skills to read, install and run (`pdf-summarizer`, `toplanti-notu`) |
 | `commands.md` | the cheat sheet: every command used on stage |
 | `resources.md` | official links: docs, plugin marketplace, MCP, models |
 | `after-training.md` | your path after the event: what to build first |

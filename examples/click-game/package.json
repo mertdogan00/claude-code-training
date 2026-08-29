@@ -1,0 +1,9 @@
+{
+  "name": "click-game",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "node --watch server.js"
+  }
+}
