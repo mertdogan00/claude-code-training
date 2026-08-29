@@ -2,9 +2,10 @@
 
 Open Claude Code in `exercises/stage-5-build/` and paste:
 
-> Küçük bir işletme için "haftalık gelir raporu" sayfası yapalım. Ben sana gelirleri
-> söyleyeceğim, sen tek dosyalık bir HTML sayfası oluştur: haftalık toplam, günlere göre
-> çubuk grafik, en iyi gün vurgusu. Önce planını üç maddeyle söyle, onaylayınca yaz.
+> Küçük bir işletme için "haftalık gelir raporu" uygulaması yapalım. index.html + style.css
+> + app.js ön yüz, minik bir Node.js sunucusu, veriler SQLite'ta. Haftalık toplam, günlere
+> göre çubuk grafik, en iyi gün vurgusu. Basit ama modüler yaz; npm run dev ile çalışsın.
+> Önce planını üç maddeyle söyle, onaylayınca başla.
 
 Then iterate out loud, like on stage:
 
