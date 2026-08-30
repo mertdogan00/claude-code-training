@@ -1,30 +1,32 @@
-# Prompt kütüphanesi
+# Prompt library
 
-Paste these as-is; adjust the bracketed parts. Speaking Turkish to Claude Code is not a
-compromise: you express intent better in your own language.
+Paste these as-is; adjust the bracketed parts. Claude Code is fluent in Turkish too: on
+stage the answers arrive in Turkish because the project's `CLAUDE.md` says so, even when the
+prompt is English. Say what you want in whichever language you think best in.
 
-## Understanding
+## Understanding a project
 
-> Bu klasördeki dosyaları incele ve projenin ne yaptığını üç cümleyle Türkçe özetle.
+> Explore the files in this folder and summarize in three sentences what this project does.
 
-## Starting
+## Starting something
 
-> [Konu] hakkında tek sayfalık modern bir site oluştur. Koyu tema, büyük başlık, üç kart.
-> Dosyaları oluşturmadan önce ne yapacağını tek cümleyle söyle.
+> Build a one-page modern site about [topic]: dark theme, one big headline, three cards.
+> Before creating any file, state in one sentence what you are about to create and why.
 
-## Fixing
+## Fixing something
 
-> Şu hatayı alıyorum: [hatayı yapıştır]. Sebebini Türkçe açıkla, sonra düzelt.
+> I am getting this error: [paste the error]. Explain the cause in plain language first,
+> then fix it.
 
 ## Weak vs strong
 
-✗ "Bir web sitesi yap"
-✓ "Next.js ile tek sayfalık bir tanıtım sayfası yap. Koyu tema, hero bölümü, 3 özellik
-kartı, bir adet iletişim butonu. Mobilde de düzgün görünsün."
+✗ "Make a website"
+✓ "Build a one-page landing site with Node built-ins only: dark theme, hero section, three
+feature cards, one contact button. It must look right on a phone too."
 
 The difference is not magic words: it is CONTEXT and CONSTRAINTS.
 
-## Mega-promptlar (uygulama reçeteleri)
+## Mega-prompts (application recipes)
 
-Tam uygulamaları TEK atışta doğuran, ekip-rollü uzun reçeteler: [apps/](apps/) klasöründe,
-tablosuyla. Eğitimin finali de oradan çıkar.
+Long, team-role recipes that give birth to complete applications in ONE shot: in the
+[apps/](apps/) folder, with a table. The training's finale comes from there.

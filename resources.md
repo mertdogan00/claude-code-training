@@ -1,6 +1,6 @@
 # Official resources
 
-<!-- Links verified 2026-08-29 during deck production; re-check before the event. -->
+<!-- Links verified 2026-08-30 during deck production; re-check before the event. -->
 
 ## Claude Code
 
@@ -10,9 +10,12 @@
 
 ## Extending
 
-- Plugin marketplace: inside Claude Code, type `/plugin` (official Anthropic marketplace)
-- MCP (Model Context Protocol): https://modelcontextprotocol.io
+- Official plugin marketplace (browse on the web): https://claude.com/plugins
+- Inside Claude Code: `/plugin` (the official marketplace is pre-added on first run)
+- Community marketplace: `/plugin marketplace add anthropics/claude-plugins-community`
+- MCP (Model Context Protocol) registry and spec: https://modelcontextprotocol.io
 - Cloudflare MCP servers (used on stage): https://developers.cloudflare.com/agents/model-context-protocol/
+- Keyless MCP quick adds (Cloudflare docs, Context7, DeepWiki): `exercises/stage-4-extend/mcp.md`
 
 ## Models
 

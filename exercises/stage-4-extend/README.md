@@ -2,35 +2,34 @@
 
 Goal: see the SAME assistant grow hands: a skill, a plugin, an MCP connection.
 
-## 4a. Install the example skill (2 minutes)
+## 4a. Install a skill (2 minutes)
 
-The finished skill lives in `../../skills/pdf-summarizer/`. Read its `SKILL.md`: it is just
-a markdown file with instructions: that IS a skill.
+Four finished skills live in `../../skills/`; the table and install steps are in
+[`skills/README.md`](../../skills/README.md). On stage we install `pdf-summarizer`; at home
+pick whichever matches your week.
 
 Ask Claude Code, from the repo root:
 
-> skills/pdf-summarizer klasöründeki beceriyi bu projeye skill olarak kur.
+> Install skills/pdf-summarizer into this project as a skill.
 
 Then type `/` and watch it appear in the list. Run it on any PDF.
 
-**The point:** yesterday this was a prompt you kept re-typing; now it is a command.
+**The point:** yesterday this was a prompt you kept re-typing; now it is a command, and it
+carries its own helper script with it.
 
-## 4b. Install a plugin from the official marketplace (3 minutes)
+## 4b. Install a plugin from a marketplace (3 minutes)
 
-Inside Claude Code:
+Step-by-step with the exact commands: [`plugin.md`](plugin.md).
 
-```
-/plugin
-```
-
-Browse the official marketplace, pick one (on stage we install one live), confirm, and try
-the new capability. Where to find more: see `../../resources.md`.
+Short version: Claude Code ships with the official Anthropic marketplace already added.
+Type `/plugin`, browse the Discover tab, pick, confirm, use.
 
 ## 4c. Connect an MCP server (3 minutes)
 
-MCP is how Claude Code talks to OUTSIDE systems (your files were always local; MCP opens
-doors to services). Example used on stage: a Cloudflare MCP server. Setup commands and the
-directory of public MCP servers: `../../resources.md`.
+Step-by-step with three public, no-API-key options: [`mcp.md`](mcp.md).
+
+MCP is how Claude Code talks to OUTSIDE systems: your files were always local; MCP opens
+doors to live services and documentation.
 
 **The ladder you just climbed:** prompt → skill (reusable) → plugin (packaged) → MCP (talks
 to the outside world).
