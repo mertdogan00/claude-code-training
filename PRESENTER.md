@@ -11,6 +11,7 @@ network for the remote-control demo.
 |---|---|
 | Install slide (3 systems) | nothing to run live; point at `docs/setup/` |
 | "First launch" terminal frame | in an empty folder: `claude` → let the welcome screen sit on screen; type `/help`, scroll it slowly |
+| Two-engines frame (Node + Python) | run `node -v` and `python3 --version` live, read both versions out loud; point people at `docs/setup/` ("the demos and skill scripts need these, Claude Code itself does not") |
 | Remote control demo | phone: open the Claude app, connect to this machine, send one small task |
 
 ## Stop 3 · Core Concepts
