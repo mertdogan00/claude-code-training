@@ -23,18 +23,29 @@ claude
 A Claude **Pro** plan or higher is required to use Claude Code
 (see [pricing](https://claude.com/pricing)).
 
+## The five stops
+
+The training is one journey with five stops. Stops 1 and 2 happen on stage (the big
+picture, then installing); the repo picks you up from stop 2 onward:
+
+| Stop | On stage | In this repo |
+|---|---|---|
+| 1 · Büyük Resim | where AI came from, why Claude Code | (talk only) |
+| 2 · Kurulum | terminal basics, install on 3 systems | `docs/setup/` |
+| 3 · Temel Kavramlar | prompt, context, CLAUDE.md, live before/after | `exercises/stage-3-context/` |
+| 4 · Genişletme | skills, plugins, MCP | `exercises/stage-4-extend/` + `skills/` |
+| 5 · Canlı Üretim | the room votes, one app is born from one prompt | `exercises/stage-5-build/` + `prompts/apps/` |
+
 ## Map
 
 | Path | What it is |
 |---|---|
 | `CLAUDE.md` | the project memory: how Claude behaves in THIS repo (annotated as a teaching example) |
 | `docs/setup/` | install guides: macOS · Windows · Linux |
-| `exercises/stage-3-context/` | feel what context and CLAUDE.md change: the before/after exercise |
-| `exercises/stage-4-extend/` | skills, plugins and MCP: extend Claude Code hands-on |
-| `exercises/stage-5-build/` | the finale: the room votes ONE big app; the winner is born live from one prompt |
+| `exercises/` | one folder per training stage, each with its own README |
+| `prompts/` | ready-to-paste Turkish prompts used in the training |
 | `prompts/apps/` | SIX one-shot mega-prompts (dashboard, game, stok, randevu, bütçe, QR menü), team-role structured |
 | `data/` | sample sales CSV the dashboard prompt reads |
-| `prompts/` | ready-to-paste Turkish prompts used in the training |
 | `skills/` | FOUR finished skills to install and run (`pdf-summarizer`, `toplanti-notu`, `klasor-raporu`, `sosyal-post`) |
 | `commands.md` | the cheat sheet: every command used on stage |
 | `resources.md` | official links: docs, plugin marketplace, MCP, models |
