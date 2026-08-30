@@ -9,7 +9,7 @@ complete and installable; each solves something you plausibly do every week.
 | [pdf-summarizer](pdf-summarizer/) | a 40-page PDF lands in your inbox | `scripts/extract_text.py` |
 | [meeting-notes](meeting-notes/) | messy notes after a meeting | `references/template.md` |
 | [folder-report](folder-report/) | "what IS in this folder?" | `scripts/scan.py` |
-| [social-post](social-post/) | one announcement, three platforms | `references/platform-notes.md` |
+| [social-post](social-post/) | one announcement, three platforms | `scripts/check_limits.js`, `references/platform-notes.md` |
 
 ## Install one (pick ONE tonight and actually run it)
 
@@ -41,5 +41,7 @@ Restart Claude Code (or run `/reload-plugins`), type `/`, and it is in the list.
 
 Start from the one closest to your need, rename the folder, rewrite `SKILL.md` in plain
 sentences: when to trigger, the steps, the output shape, what NOT to do. If a step is
-mechanical (walking folders, extracting text), put it in `scripts/` and have the skill call
-it; instructions decide, scripts do the heavy lifting.
+mechanical (walking folders, extracting text, counting characters), put it in `scripts/` and
+have the skill call it; instructions decide, scripts do the heavy lifting. Both engines from
+the deck are represented here: `scan.py` and `extract_text.py` are Python, `check_limits.js`
+is Node, and `meeting-notes` shows that a pure text-shaping skill needs no script at all.

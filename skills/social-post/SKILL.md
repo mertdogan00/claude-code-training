@@ -15,4 +15,7 @@ When invoked with a source text (pasted or a file path):
    - **X:** at most 280 characters, punchiest angle, no hashtags.
 3. All Turkish; keep the user's facts exactly, invent nothing; no emoji unless the source
    itself is informal.
-4. End with: "Hangisini açalım?" so the user picks one to refine.
+4. Verify, never eyeball: save each draft to a temp file and run the deterministic guard,
+   fixing every FAIL before showing the result:
+   `node scripts/check_limits.js x draft-x.txt` (same for `linkedin` / `instagram`).
+5. End with: "Hangisini açalım?" so the user picks one to refine.
