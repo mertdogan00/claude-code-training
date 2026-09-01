@@ -1,7 +1,9 @@
 # Application mega-prompts
 
 Each file is a ONE-SHOT recipe: paste it as-is into a fresh Claude Code session and a whole
-application is born from zero, with no approval pauses. They all teach the same skeleton:
+application is born from zero, with no approval pauses. Every recipe here is also already
+built and tested under [`showcase/`](../../showcase/): open a recipe, then its folder there to
+see exactly what the prompt produced. They all teach the same skeleton:
 
 **autonomy clause** (plan first, then run to the end) → **team instruction** (product manager
 → backend → frontend → data → QA, roles reported separately on screen) → **the job** →

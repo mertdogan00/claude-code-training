@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stok Defteri</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="app-header">
+  <h1>Stok Defteri</h1>
+  <p class="subtitle">Küçük işletmeler için stok ve kritik seviye takibi</p>
+</header>
+
+<main>
+  <section class="summary-cards" id="summary-cards" aria-label="Özet kartlar">
+    <div class="card">
+      <span class="card-label">Farklı Ürün</span>
+      <span class="card-value" id="summary-count">0</span>
+    </div>
+    <div class="card">
+      <span class="card-label">Toplam Stok Değeri</span>
+      <span class="card-value" id="summary-value">0 ₺</span>
+    </div>
+    <div class="card card-critical">
+      <span class="card-label">Kritik Ürün</span>
+      <span class="card-value" id="summary-critical">0</span>
+    </div>
+  </section>
+
+  <section class="panel add-product">
+    <h2>Yeni Ürün Ekle</h2>
+    <form id="product-form" novalidate>
+      <div class="field">
+        <label for="input-name">Ürün adı</label>
+        <input id="input-name" name="name" type="text" required>
+      </div>
+      <div class="field">
+        <label for="input-category">Kategori</label>
+        <input id="input-category" name="category" type="text" required>
+      </div>
+      <div class="field">
+        <label for="input-quantity">Miktar</label>
+        <input id="input-quantity" name="quantity" type="number" min="0" step="1" required>
+      </div>
+      <div class="field">
+        <label for="input-threshold">Kritik eşik</label>
+        <input id="input-threshold" name="criticalThreshold" type="number" min="0" step="1" placeholder="5">
+      </div>
+      <div class="field">
+        <label for="input-price">Birim fiyat (₺)</label>
+        <input id="input-price" name="unitPrice" type="number" min="0" step="0.01" required>
+      </div>
+      <button type="submit">Ürün Ekle</button>
+    </form>
+    <p id="form-error" class="form-error" hidden></p>
+  </section>
+
+  <section class="panel product-browser">
+    <h2>Ürünler</h2>
+    <div class="filters">
+      <input id="search-input" type="search" placeholder="Ürün ara...">
+      <select id="category-filter">
+        <option value="">Tüm kategoriler</option>
+      </select>
+    </div>
+    <div id="product-list" class="product-list"></div>
+  </section>
+
+  <section class="panel movement-history">
+    <h2>Son 10 Hareket</h2>
+    <ul id="movement-list" class="movement-list"></ul>
+  </section>
+</main>
+
+<script src="/app.js"></script>
+</body>
+</html>

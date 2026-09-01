@@ -26,12 +26,14 @@ stage with Remote Control.
 ## Node.js (needed for the demo apps, not for Claude Code itself)
 
 The training's example applications run on Node.js and use its built-in `node:sqlite`
-module, which needs **Node 22.5 or newer**; distribution packages are often older, so prefer
-the LTS from https://nodejs.org or your version manager of choice.
+module. Install the current **LTS (Node 24 or newer)** from https://nodejs.org or your version
+manager (distribution packages are often older): there `node:sqlite` is built in with no flag
+and the demo apps start with a plain `npm run dev`. On Node 22.x the module is gated, so start
+those apps with `node --experimental-sqlite server.js` instead.
 
 ```bash
 # verify
-node -v   # must print v22.5 or newer
+node -v   # v24+ recommended (Node 22.x works with the flag above)
 ```
 
 ## Python (used by the skills' helper scripts)

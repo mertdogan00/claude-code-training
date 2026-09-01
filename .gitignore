@@ -1,4 +1,10 @@
 # runtime artifacts
-examples/**/data.db
-examples/**/scores.db
 node_modules/
+
+# per-app SQLite files are created on first run and recreated on each start
+showcase/**/*.sqlite
+showcase/**/*.sqlite3
+showcase/**/*.db
+showcase/**/*.sqlite-journal
+showcase/**/*.sqlite-wal
+showcase/**/*.sqlite-shm

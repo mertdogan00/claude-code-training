@@ -42,6 +42,9 @@ network for the remote-control demo.
 
 ## Pocket answers
 
+- The live build fails, drags, or the wifi dies mid-build: open `showcase/<winner>/`, run
+  `npm run dev`, and show the finished app. "Claude Code built this from that exact prompt,
+  here is the result." All six candidates are pre-built and tested under `showcase/`.
 - Wifi dies during MCP: show `exercises/stage-4-extend/mcp.md` and narrate it; the skill and
   plugin demos work offline.
 - The build stalls on a question it should not ask: reply `continue as planned, no more

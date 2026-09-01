@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Satış Paneli</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="page-header">
+    <h1>Satış Paneli</h1>
+    <p class="subtitle">Ağustos 2026 satış verilerine dayalı canlı analiz</p>
+  </header>
+
+  <main id="app">
+    <div id="error-banner" class="error-banner" hidden></div>
+
+    <section class="cards" id="summary-cards">
+      <div class="card">
+        <span class="card-label">Toplam Ciro</span>
+        <span class="card-value" id="card-total-revenue">-</span>
+      </div>
+      <div class="card">
+        <span class="card-label">Toplam Satış Adedi</span>
+        <span class="card-value" id="card-total-units">-</span>
+      </div>
+      <div class="card">
+        <span class="card-label">En Çok Kazandıran Ürün</span>
+        <span class="card-value" id="card-best-product">-</span>
+        <span class="card-sub" id="card-best-product-sub"></span>
+      </div>
+      <div class="card">
+        <span class="card-label">En Güçlü Şehir</span>
+        <span class="card-value" id="card-strongest-city">-</span>
+        <span class="card-sub" id="card-strongest-city-sub"></span>
+      </div>
+    </section>
+
+    <section class="panel" id="daily-panel">
+      <h2>Günlük Ciro</h2>
+      <div class="chart" id="daily-chart"></div>
+    </section>
+
+    <div class="two-col">
+      <section class="panel" id="category-panel">
+        <h2>Kategoriye Göre Ciro Payı</h2>
+        <div class="bar-list" id="category-bars"></div>
+      </section>
+
+      <section class="panel" id="city-panel">
+        <h2>Şehir Bazlı Performans</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Şehir</th>
+                <th>Ciro</th>
+                <th>Adet</th>
+                <th>Ort. Sepet</th>
+              </tr>
+            </thead>
+            <tbody id="city-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel" id="insight-panel">
+      <h2>Öne Çıkanlar</h2>
+      <ul class="insight-list" id="insight-list"></ul>
+    </section>
+  </main>
+
+  <footer class="page-footer">
+    <p id="footnote"></p>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

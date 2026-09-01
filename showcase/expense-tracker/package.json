@@ -1,0 +1,9 @@
+{
+  "name": "cuzdan-expense-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cuzdan - personal expense tracker built with Node built-ins only (node:http, node:sqlite).",
+  "scripts": {
+    "dev": "node --watch server.js"
+  }
+}

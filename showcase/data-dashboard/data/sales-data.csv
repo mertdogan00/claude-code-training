@@ -1,0 +1,121 @@
+date,product,category,qty,unit_price,city
+2026-08-11,Thermos,Kitchen,7,350,Ankara
+2026-08-03,Grinder,Electronics,2,1150,Izmir
+2026-08-19,Coffee Maker,Electronics,4,2400,Ankara
+2026-08-03,Coffee Beans 1kg,Food,7,680,Ankara
+2026-08-08,Coffee Maker,Electronics,7,2400,Ankara
+2026-08-27,Grinder,Electronics,2,1150,Istanbul
+2026-08-21,French Press,Kitchen,1,430,Antalya
+2026-08-19,Coffee Beans 1kg,Food,1,680,Istanbul
+2026-08-02,Grinder,Electronics,3,1150,Izmir
+2026-08-14,Thermos,Kitchen,2,350,Antalya
+2026-08-10,Grinder,Electronics,3,1150,Ankara
+2026-08-19,Grinder,Electronics,4,1150,Izmir
+2026-08-04,Grinder,Electronics,2,1150,Antalya
+2026-08-02,Grinder,Electronics,4,1150,Bursa
+2026-08-22,Grinder,Electronics,7,1150,Izmir
+2026-08-15,Grinder,Electronics,8,1150,Izmir
+2026-08-10,Thermos,Kitchen,3,350,Istanbul
+2026-08-03,Grinder,Electronics,5,1150,Antalya
+2026-08-16,Cup Set,Kitchen,8,520,Izmir
+2026-08-20,Coffee Maker,Electronics,2,2400,Antalya
+2026-08-14,Thermos,Kitchen,6,350,Istanbul
+2026-08-16,Coffee Beans 1kg,Food,1,680,Ankara
+2026-08-25,Grinder,Electronics,6,1150,Izmir
+2026-08-23,Cup Set,Kitchen,8,520,Antalya
+2026-08-26,Coffee Beans 1kg,Food,2,680,Ankara
+2026-08-09,Coffee Beans 1kg,Food,2,680,Ankara
+2026-08-24,French Press,Kitchen,5,430,Antalya
+2026-08-22,Coffee Beans 1kg,Food,5,680,Bursa
+2026-08-22,Cup Set,Kitchen,1,520,Bursa
+2026-08-12,Thermos,Kitchen,2,350,Bursa
+2026-08-02,Thermos,Kitchen,5,350,Istanbul
+2026-08-24,Thermos,Kitchen,7,350,Bursa
+2026-08-28,Coffee Beans 1kg,Food,2,680,Istanbul
+2026-08-15,Coffee Beans 1kg,Food,5,680,Istanbul
+2026-08-27,Coffee Beans 1kg,Food,5,680,Bursa
+2026-08-12,French Press,Kitchen,7,430,Istanbul
+2026-08-05,Coffee Maker,Electronics,3,2400,Istanbul
+2026-08-08,French Press,Kitchen,4,430,Ankara
+2026-08-16,Grinder,Electronics,3,1150,Izmir
+2026-08-10,Coffee Maker,Electronics,3,2400,Bursa
+2026-08-18,Cup Set,Kitchen,6,520,Istanbul
+2026-08-23,Grinder,Electronics,1,1150,Bursa
+2026-08-28,French Press,Kitchen,7,430,Bursa
+2026-08-13,Coffee Beans 1kg,Food,2,680,Bursa
+2026-08-21,Coffee Beans 1kg,Food,1,680,Istanbul
+2026-08-03,Thermos,Kitchen,8,350,Istanbul
+2026-08-04,Cup Set,Kitchen,1,520,Ankara
+2026-08-01,Grinder,Electronics,3,1150,Antalya
+2026-08-04,Cup Set,Kitchen,1,520,Ankara
+2026-08-28,Thermos,Kitchen,7,350,Istanbul
+2026-08-21,Cup Set,Kitchen,6,520,Antalya
+2026-08-12,Coffee Beans 1kg,Food,2,680,Ankara
+2026-08-28,Coffee Beans 1kg,Food,8,680,Bursa
+2026-08-16,Cup Set,Kitchen,2,520,Istanbul
+2026-08-04,French Press,Kitchen,6,430,Izmir
+2026-08-16,French Press,Kitchen,3,430,Antalya
+2026-08-01,Thermos,Kitchen,6,350,Istanbul
+2026-08-23,Grinder,Electronics,1,1150,Antalya
+2026-08-10,French Press,Kitchen,2,430,Izmir
+2026-08-17,Cup Set,Kitchen,3,520,Izmir
+2026-08-25,Thermos,Kitchen,6,350,Istanbul
+2026-08-20,Thermos,Kitchen,4,350,Bursa
+2026-08-24,Thermos,Kitchen,4,350,Antalya
+2026-08-16,Cup Set,Kitchen,1,520,Ankara
+2026-08-26,Cup Set,Kitchen,8,520,Izmir
+2026-08-07,French Press,Kitchen,6,430,Bursa
+2026-08-26,French Press,Kitchen,6,430,Izmir
+2026-08-03,Thermos,Kitchen,2,350,Istanbul
+2026-08-16,Thermos,Kitchen,6,350,Istanbul
+2026-08-16,Grinder,Electronics,1,1150,Bursa
+2026-08-21,Cup Set,Kitchen,2,520,Ankara
+2026-08-13,French Press,Kitchen,4,430,Bursa
+2026-08-06,Coffee Beans 1kg,Food,6,680,Ankara
+2026-08-26,French Press,Kitchen,7,430,Bursa
+2026-08-13,French Press,Kitchen,2,430,Istanbul
+2026-08-06,Thermos,Kitchen,1,350,Istanbul
+2026-08-19,Coffee Beans 1kg,Food,3,680,Antalya
+2026-08-27,Grinder,Electronics,8,1150,Izmir
+2026-08-05,Grinder,Electronics,3,1150,Ankara
+2026-08-01,French Press,Kitchen,2,430,Antalya
+2026-08-24,Thermos,Kitchen,7,350,Istanbul
+2026-08-27,Thermos,Kitchen,1,350,Izmir
+2026-08-07,Cup Set,Kitchen,4,520,Antalya
+2026-08-11,Cup Set,Kitchen,7,520,Istanbul
+2026-08-02,French Press,Kitchen,6,430,Bursa
+2026-08-22,Grinder,Electronics,7,1150,Antalya
+2026-08-05,Grinder,Electronics,3,1150,Antalya
+2026-08-17,Coffee Maker,Electronics,8,2400,Istanbul
+2026-08-20,Coffee Maker,Electronics,3,2400,Istanbul
+2026-08-05,Coffee Beans 1kg,Food,2,680,Antalya
+2026-08-02,Cup Set,Kitchen,8,520,Ankara
+2026-08-18,Coffee Maker,Electronics,4,2400,Istanbul
+2026-08-09,Coffee Maker,Electronics,2,2400,Antalya
+2026-08-15,Grinder,Electronics,1,1150,Ankara
+2026-08-15,Cup Set,Kitchen,4,520,Izmir
+2026-08-15,Grinder,Electronics,8,1150,Antalya
+2026-08-08,French Press,Kitchen,5,430,Antalya
+2026-08-07,Coffee Beans 1kg,Food,3,680,Bursa
+2026-08-04,Coffee Beans 1kg,Food,8,680,Izmir
+2026-08-03,French Press,Kitchen,4,430,Bursa
+2026-08-03,Thermos,Kitchen,5,350,Ankara
+2026-08-25,Thermos,Kitchen,6,350,Istanbul
+2026-08-09,Thermos,Kitchen,8,350,Istanbul
+2026-08-24,Coffee Maker,Electronics,7,2400,Bursa
+2026-08-06,French Press,Kitchen,4,430,Istanbul
+2026-08-23,Coffee Beans 1kg,Food,7,680,Izmir
+2026-08-14,Thermos,Kitchen,6,350,Izmir
+2026-08-03,French Press,Kitchen,6,430,Ankara
+2026-08-11,Grinder,Electronics,8,1150,Bursa
+2026-08-23,Coffee Maker,Electronics,7,2400,Izmir
+2026-08-17,Grinder,Electronics,5,1150,Antalya
+2026-08-03,Coffee Maker,Electronics,4,2400,Ankara
+2026-08-03,Cup Set,Kitchen,5,520,Ankara
+2026-08-25,Thermos,Kitchen,5,350,Istanbul
+2026-08-27,Coffee Beans 1kg,Food,5,680,Bursa
+2026-08-05,Grinder,Electronics,8,1150,Izmir
+2026-08-03,Cup Set,Kitchen,1,520,Istanbul
+2026-08-14,Coffee Maker,Electronics,5,2400,Ankara
+2026-08-21,Coffee Maker,Electronics,5,2400,Ankara
+2026-08-20,Thermos,Kitchen,2,350,Izmir

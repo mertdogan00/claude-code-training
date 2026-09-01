@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Randevu Defteri</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <h1>Randevu Defteri</h1>
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-label">Bugun</span>
+        <span class="stat-value" id="stat-today">-</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Bu Hafta Doluluk</span>
+        <span class="stat-value" id="stat-occupancy">-</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Sonraki Bos Saat</span>
+        <span class="stat-value" id="stat-next-free">-</span>
+      </div>
+    </div>
+    <button id="print-tomorrow-btn" class="btn btn-ghost">Yarini Yazdir</button>
+  </header>
+
+  <nav class="week-nav">
+    <button id="prev-week-btn" class="btn btn-icon" aria-label="Onceki hafta">&#8592;</button>
+    <div id="week-label" class="week-label">-</div>
+    <button id="next-week-btn" class="btn btn-icon" aria-label="Sonraki hafta">&#8594;</button>
+  </nav>
+
+  <main class="grid-wrap">
+    <table class="grid" id="grid">
+      <thead>
+        <tr id="grid-head-row">
+          <th class="time-col">Saat</th>
+        </tr>
+      </thead>
+      <tbody id="grid-body"></tbody>
+    </table>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="modal-backdrop" hidden>
+  <div class="modal">
+    <button class="modal-close" id="modal-close" aria-label="Kapat">&times;</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cüzdan</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="app-header">
+      <h1>Cüzdan</h1>
+      <p class="app-subtitle">Kişisel harcama takibi</p>
+    </header>
+
+    <section class="card entry-card">
+      <form id="entry-form" autocomplete="off">
+        <div class="field field-amount">
+          <label for="amount">Tutar</label>
+          <input id="amount" name="amount" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0" required />
+        </div>
+        <div class="field">
+          <label for="category">Kategori</label>
+          <select id="category" name="category" required>
+            <option value="food">Yeme-İçme</option>
+            <option value="transport">Ulaşım</option>
+            <option value="bills">Faturalar</option>
+            <option value="entertainment">Eğlence</option>
+            <option value="groceries">Market</option>
+            <option value="other">Diğer</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="note">Not (opsiyonel)</label>
+          <input id="note" name="note" type="text" maxlength="200" placeholder="Ör. öğle yemeği" />
+        </div>
+        <p id="form-error" class="form-error" hidden></p>
+        <button type="submit" class="btn-primary">Ekle</button>
+      </form>
+    </section>
+
+    <section id="limit-band" class="card limit-band status-neutral">
+      <div class="limit-status">
+        <span id="limit-status-text">Aylık limit belirlenmedi</span>
+      </div>
+      <form id="limit-form" class="limit-form" autocomplete="off">
+        <input id="limit-input" name="limit" type="number" inputmode="decimal" step="0.01" min="0" placeholder="Aylık limit" />
+        <button type="submit" class="btn-secondary">Kaydet</button>
+      </form>
+    </section>
+
+    <section class="card month-summary">
+      <div class="summary-item">
+        <span class="summary-label">Bu Ay Toplam</span>
+        <span id="month-total" class="summary-value">-</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Günlük Ortalama</span>
+        <span id="month-average" class="summary-value">-</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Ay Sonu Tahmini</span>
+        <span id="month-projection" class="summary-value">-</span>
+      </div>
+    </section>
+
+    <section class="card category-card">
+      <h2>Kategori Dağılımı</h2>
+      <div id="category-list" class="category-list"></div>
+    </section>
+
+    <section class="card expense-card">
+      <h2>Son Harcamalar</h2>
+      <ul id="expense-list" class="expense-list"></ul>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

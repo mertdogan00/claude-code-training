@@ -1,0 +1,13 @@
+{
+  "name": "sales-panel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sales Panel - CSV to SQLite to dashboard, Node built-ins only.",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
