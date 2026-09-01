@@ -1,80 +1,144 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Satış Paneli</title>
-  <link rel="stylesheet" href="/style.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Satış Analitik Paneli</title>
+<link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-  <header class="page-header">
-    <h1>Satış Paneli</h1>
-    <p class="subtitle">Ağustos 2026 satış verilerine dayalı canlı analiz</p>
+<div class="shell">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <div class="brand-text">
+        <h1>Satış Analitik Paneli</h1>
+        <p>Gerçek zamanlı satış performans özeti</p>
+      </div>
+    </div>
   </header>
 
-  <main id="app">
-    <div id="error-banner" class="error-banner" hidden></div>
+  <section class="filterbar" id="filterbar">
+    <div class="field">
+      <label for="from-date">Başlangıç</label>
+      <input type="date" id="from-date" />
+    </div>
+    <div class="field">
+      <label for="to-date">Bitiş</label>
+      <input type="date" id="to-date" />
+    </div>
+    <div class="field">
+      <label for="category-select">Kategori</label>
+      <select id="category-select">
+        <option value="">Tüm kategoriler</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="city-select">Şehir</label>
+      <select id="city-select">
+        <option value="">Tüm şehirler</option>
+      </select>
+    </div>
+    <button class="btn-reset" id="reset-filters" type="button">Filtreleri temizle</button>
+  </section>
 
-    <section class="cards" id="summary-cards">
-      <div class="card">
-        <span class="card-label">Toplam Ciro</span>
-        <span class="card-value" id="card-total-revenue">-</span>
-      </div>
-      <div class="card">
-        <span class="card-label">Toplam Satış Adedi</span>
-        <span class="card-value" id="card-total-units">-</span>
-      </div>
-      <div class="card">
-        <span class="card-label">En Çok Kazandıran Ürün</span>
-        <span class="card-value" id="card-best-product">-</span>
-        <span class="card-sub" id="card-best-product-sub"></span>
-      </div>
-      <div class="card">
-        <span class="card-label">En Güçlü Şehir</span>
-        <span class="card-value" id="card-strongest-city">-</span>
-        <span class="card-sub" id="card-strongest-city-sub"></span>
-      </div>
-    </section>
+  <section class="kpi-grid" id="kpi-grid">
+    <article class="kpi-card" data-kpi="revenue">
+      <p class="kpi-label">Ciro</p>
+      <p class="kpi-value" id="kpi-revenue-value">-</p>
+      <p class="kpi-change" id="kpi-revenue-change">-</p>
+      <p class="kpi-sub" id="kpi-revenue-sub">önceki döneme göre</p>
+    </article>
+    <article class="kpi-card" data-kpi="units">
+      <p class="kpi-label">Satılan Adet</p>
+      <p class="kpi-value" id="kpi-units-value">-</p>
+      <p class="kpi-change" id="kpi-units-change">-</p>
+      <p class="kpi-sub" id="kpi-units-sub">önceki döneme göre</p>
+    </article>
+    <article class="kpi-card" data-kpi="orders">
+      <p class="kpi-label">Sipariş Sayısı</p>
+      <p class="kpi-value" id="kpi-orders-value">-</p>
+      <p class="kpi-change" id="kpi-orders-change">-</p>
+      <p class="kpi-sub" id="kpi-orders-sub">önceki döneme göre</p>
+    </article>
+    <article class="kpi-card" data-kpi="avgBasket">
+      <p class="kpi-label">Ortalama Sepet</p>
+      <p class="kpi-value" id="kpi-avgBasket-value">-</p>
+      <p class="kpi-change" id="kpi-avgBasket-change">-</p>
+      <p class="kpi-sub" id="kpi-avgBasket-sub">önceki döneme göre</p>
+    </article>
+  </section>
 
-    <section class="panel" id="daily-panel">
-      <h2>Günlük Ciro</h2>
-      <div class="chart" id="daily-chart"></div>
-    </section>
-
-    <div class="two-col">
-      <section class="panel" id="category-panel">
-        <h2>Kategoriye Göre Ciro Payı</h2>
-        <div class="bar-list" id="category-bars"></div>
-      </section>
-
-      <section class="panel" id="city-panel">
-        <h2>Şehir Bazlı Performans</h2>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Şehir</th>
-                <th>Ciro</th>
-                <th>Adet</th>
-                <th>Ort. Sepet</th>
-              </tr>
-            </thead>
-            <tbody id="city-table-body"></tbody>
-          </table>
+  <section class="chart-row">
+    <div class="panel panel-timeline">
+      <div class="panel-head">
+        <h2>Gelir Zaman Çizelgesi</h2>
+        <div class="granularity-switch" id="granularity-switch">
+          <button type="button" data-granularity="day" class="active">Gün</button>
+          <button type="button" data-granularity="week">Hafta</button>
+          <button type="button" data-granularity="month">Ay</button>
         </div>
-      </section>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="timeline-chart"></canvas>
+      </div>
     </div>
 
-    <section class="panel" id="insight-panel">
-      <h2>Öne Çıkanlar</h2>
+    <div class="panel panel-donut">
+      <div class="panel-head">
+        <h2>Kategori Payı</h2>
+      </div>
+      <div class="chart-wrap donut-wrap">
+        <canvas id="category-chart"></canvas>
+      </div>
+      <ul class="legend" id="category-legend"></ul>
+    </div>
+  </section>
+
+  <section class="chart-row">
+    <div class="panel panel-cities">
+      <div class="panel-head">
+        <h2>Şehre Göre Gelir</h2>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="city-chart"></canvas>
+      </div>
+    </div>
+
+    <div class="panel panel-insights">
+      <div class="panel-head">
+        <h2>İç Görüşler</h2>
+      </div>
       <ul class="insight-list" id="insight-list"></ul>
-    </section>
-  </main>
+    </div>
+  </section>
 
-  <footer class="page-footer">
-    <p id="footnote"></p>
-  </footer>
+  <section class="panel panel-table">
+    <div class="panel-head">
+      <h2>Ürün Tablosu</h2>
+      <input type="search" id="product-search" placeholder="Ürün ara..." />
+    </div>
+    <div class="table-scroll">
+      <table id="product-table">
+        <thead>
+          <tr>
+            <th data-sort="product">Ürün</th>
+            <th data-sort="category">Kategori</th>
+            <th data-sort="revenue">Gelir</th>
+            <th data-sort="units">Adet</th>
+            <th data-sort="orders">Sipariş</th>
+            <th data-sort="share">Pay</th>
+          </tr>
+        </thead>
+        <tbody id="product-table-body"></tbody>
+      </table>
+    </div>
+  </section>
 
-  <script src="/app.js"></script>
+</div>
+
+<script src="/vendor/chart.umd.js"></script>
+<script src="/app.js"></script>
 </body>
 </html>

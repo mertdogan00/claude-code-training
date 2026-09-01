@@ -1,7 +1,0 @@
-*.sqlite
-*.sqlite-journal
-*.sqlite-wal
-*.sqlite-shm
-*.db
-*.sqlite3
-node_modules/

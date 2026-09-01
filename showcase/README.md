@@ -1,43 +1,57 @@
-# Showcase: the prompts, already built
+# Showcase: the prompts, already built by agent teams
 
-Every app here was born from ONE mega-prompt in [`../prompts/apps/`](../prompts/apps/), run
-end to end by Claude Code, then tested for real. This folder is the "output" half of the
-repo's "prompt to output" story: open a recipe in `prompts/apps/`, then open the matching
-folder here to see exactly what that one prompt produced.
+Every app here was born from ONE mega-prompt in [`../prompts/apps/`](../prompts/apps/). Claude
+Code read the recipe, formed a real team of sub-agents (a Backend Lead, a Frontend Lead and a
+QA Lead, each free to spawn workers), published the contract first, built in parallel,
+integrated the parts, and let QA try to break the result. Each folder keeps the evidence: the
+code, a `BUILD-LOG.md` of the team at work (plan, roles, contract, tests, bugs found and
+fixed), and screenshots. Open a recipe in `prompts/apps/`, then the matching folder here, to
+see exactly what that one prompt produced.
 
-Two reasons it exists:
+## The three builds
 
-1. **Proof you can browse.** Anyone who reads a recipe can see the finished result, run it,
-   and read a `Verified` checklist of what was actually tested. No trust required.
-2. **The stage fallback.** During the live build, if the room's chosen app takes too long or
-   Claude Code stumbles, the presenter opens the matching folder here and runs it: "Claude
-   Code already built this from that one prompt, here is the result."
+| App | Product name and what it is | Recipe |
+|---|---|---|
+| [data-dashboard](data-dashboard/) | **Satış Analitik Paneli**, a sales dashboard over a CSV: KPI cards, charts, filters that drive every widget, server-computed insights and CSV import | [data-dashboard.md](../prompts/apps/data-dashboard.md) |
+| [neon-breaker](neon-breaker/) | **Neon Breaker**, a canvas Breakout: real paddle physics, power-ups, particles, synthesized sound and a leaderboard | [neon-breaker.md](../prompts/apps/neon-breaker.md) |
+| [qr-menu](qr-menu/) | **QR Menü**, a phone-first restaurant menu plus an admin panel, with real QR codes | [qr-menu.md](../prompts/apps/qr-menu.md) |
 
-## The six builds
+These three are exactly the ones the room votes on at Stop 5.
 
-| App | What it is | Recipe | Run |
-|---|---|---|---|
-| [data-dashboard](data-dashboard/) | Sales panel from a CSV: totals, daily chart, category bars, city table, a backend insight box | [data-dashboard.md](../prompts/apps/data-dashboard.md) | `cd showcase/data-dashboard && npm run dev` -> :3000 |
-| [reflex-game](reflex-game/) | 30-second click-the-target game; the target shrinks and jumps; a persistent Top 5 leaderboard by name | [reflex-game.md](../prompts/apps/reflex-game.md) | `cd showcase/reflex-game && npm run dev` -> :3001 |
-| [inventory-tracker](inventory-tracker/) | Stock ledger with critical-threshold alerts, a red order-now strip, and movement history | [inventory-tracker.md](../prompts/apps/inventory-tracker.md) | `cd showcase/inventory-tracker && npm run dev` -> :3000 |
-| [appointment-book](appointment-book/) | Weekly Mon-Sat half-hour calendar; conflicts rejected server-side; occupancy bar; print tomorrow's list | [appointment-book.md](../prompts/apps/appointment-book.md) | `cd showcase/appointment-book && npm run dev` -> :3000 |
-| [expense-tracker](expense-tracker/) | Personal budget: income and expenses, month-end projection, a three-band spending limit | [expense-tracker.md](../prompts/apps/expense-tracker.md) | `cd showcase/expense-tracker && npm run dev` -> :3000 |
-| [qr-menu](qr-menu/) | Two-faced cafe menu: a customer view and an admin panel behind a login | [qr-menu.md](../prompts/apps/qr-menu.md) | `cd showcase/qr-menu && npm run dev` -> :3000 |
+## Why this folder exists
 
-The first four are the ones the room votes on; the last two are the homework extras. All six
-follow the same skeleton on purpose: a small modular Node app, data in SQLite, up with one
-`npm run dev`.
+1. **Proof you can browse.** Anyone who reads a recipe can see the finished product, read who
+   did what in `BUILD-LOG.md`, run it, and check the `Verified` list. No trust required.
+2. **The stage fallback.** If the live build takes too long or the network dies, the presenter
+   opens the matching folder here and runs it: "a team of agents built this from that exact
+   prompt, here is the result, and here is who did what."
+
+## Run any of them
+
+```bash
+cd showcase/<app>
+npm install       # once, needs internet
+node server.js    # then open http://localhost:3000
+```
+
+`PORT=3001 node server.js` moves it to another port if 3000 is taken.
 
 ## What they all share
 
-- **Node built-ins only.** No npm packages, no `node_modules`. The one dependency is Node
-  itself and its built-in `node:sqlite`, so a fresh clone runs with nothing to install.
-- **Node 24 or newer recommended.** There `node:sqlite` is built in with no flag. On Node
-  22.x add the flag: `node --experimental-sqlite server.js` (see `docs/setup/`).
-- **Standalone.** Each folder runs on its own; nothing else in the repo needs to be present.
-  The SQLite file is created on first start and is gitignored, so every clone starts fresh.
-- **One port at a time.** Most default to port 3000 (reflex-game uses 3001); run them one at
-  a time, or override with `PORT=3010 npm run dev` where noted in the app's own README.
+- **One folder, no build step.** `server.js` (Express on Node with the built-in `node:sqlite`,
+  so nothing native compiles on your machine) serves both the API and `public/`, which is
+  plain HTML, CSS and JavaScript. No bundler, no framework, no compile.
+- **Node 24 or newer.** There `node:sqlite` needs no flag; on Node 22.x it sits behind
+  `--experimental-sqlite` (see `docs/setup/`).
+- **Standalone.** Each folder runs on its own. `data.sqlite` is created and seeded on first
+  start and is gitignored, so every clone starts fresh, your data survives restarts, and
+  deleting that one file resets the app.
+- **One app at a time** on port 3000; use the `PORT` override above to run a second.
+- **The team is on record.** `BUILD-LOG.md` in every folder tells the plan, the roles and
+  their models, the contract, every test QA ran and every bug it caught.
+- **Screenshots.** `screenshots/` in every folder shows the desktop and phone views.
+- **Before a stage,** run `npm install` in all three ahead of time so the fallback starts in
+  seconds without a network.
 
-Each app folder carries its own `README.md` with the exact prompt that built it, how to run
-it, an honest feature list, and the `Verified` checklist.
+Each app folder's `README.md` carries the product name, the two commands, the features, the
+team that built it, the screenshots and the `Verified` checklist.

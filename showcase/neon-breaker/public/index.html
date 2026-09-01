@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Neon Breaker</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+
+  <div id="stage">
+    <canvas id="game" width="880" height="620"></canvas>
+
+    <!-- HUD overlay, always on top of the canvas during play -->
+    <div id="hud" class="hidden">
+      <div id="hudLives" class="hud-group"></div>
+      <div id="hudScore" class="hud-group">0</div>
+      <div id="hudLevel" class="hud-group"></div>
+      <div id="hudChips" class="hud-group"></div>
+      <button id="muteBtn" class="hud-btn" type="button" aria-label="Sessize al">SES</button>
+    </div>
+
+    <div id="comboText" class="fx-text"></div>
+
+    <!-- Start menu -->
+    <section id="menuScreen" class="screen">
+      <h1 class="title">NEON BREAKER</h1>
+      <p class="pitch">Karanlık bir arenada ışıklı tuğlaları kır, zinciri koparma.</p>
+      <div class="menu-actions">
+        <button id="btnStart" class="btn btn-primary" type="button">Başla</button>
+        <button id="btnBoard" class="btn" type="button">Sıralama</button>
+        <button id="btnHow" class="btn" type="button">Nasıl Oynanır</button>
+      </div>
+      <div id="howPanel" class="panel hidden">
+        <h2>Kontroller</h2>
+        <ul>
+          <li>Sol / Sağ ok veya A / D: raketi hareket ettir</li>
+          <li>Fare: raketi hareket ettir</li>
+          <li>Dokunmatik: parmağını sürükle, dokunarak topu fırlat</li>
+          <li>Boşluk: topu fırlat / duraklat</li>
+          <li>Esc: duraklat</li>
+          <li>M: sesi aç / kapat</li>
+          <li>Enter: skoru gönder</li>
+        </ul>
+        <button id="btnHowClose" class="btn" type="button">Kapat</button>
+      </div>
+      <div id="boardPanel" class="panel hidden">
+        <h2>Sıralama</h2>
+        <div id="boardTableWrap"></div>
+        <button id="btnBoardClose" class="btn" type="button">Kapat</button>
+      </div>
+    </section>
+
+    <!-- Pause overlay -->
+    <section id="pauseScreen" class="screen hidden">
+      <h2>DURAKLATILDI</h2>
+      <p class="hint">Devam etmek için Boşluk veya Esc</p>
+      <div id="countdownText" class="countdown hidden"></div>
+    </section>
+
+    <!-- Level transition card -->
+    <section id="transitionScreen" class="screen hidden">
+      <h2 id="transitionTitle"></h2>
+      <p id="transitionSub"></p>
+    </section>
+
+    <!-- Game over / win panel -->
+    <section id="endScreen" class="screen hidden">
+      <h2 id="endTitle"></h2>
+      <p id="endScore"></p>
+      <form id="scoreForm" autocomplete="off">
+        <input id="nameInput" type="text" maxlength="12" placeholder="İsim (en fazla 12 karakter)" aria-label="İsim">
+        <button id="btnSubmitScore" class="btn btn-primary" type="submit">Gönder</button>
+        <span id="scoreError" class="field-error"></span>
+      </form>
+      <div id="endTableWrap"></div>
+      <button id="btnRestart" class="btn" type="button">Ana Menü</button>
+    </section>
+
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

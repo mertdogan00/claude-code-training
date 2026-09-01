@@ -1,13 +1,13 @@
 {
   "name": "qr-menu",
   "version": "1.0.0",
+  "type": "module",
   "private": true,
-  "description": "Two-faced QR menu app for a cafe: customer menu view and a password-protected panel.",
-  "main": "server.js",
   "scripts": {
-    "dev": "node server.js"
+    "start": "node server.js"
   },
-  "engines": {
-    "node": ">=22"
+  "dependencies": {
+    "express": "^4.19.2",
+    "qrcode": "^1.5.3"
   }
 }

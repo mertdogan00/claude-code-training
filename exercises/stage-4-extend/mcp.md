@@ -11,7 +11,7 @@ All three options below are **public and need no API key**; pick ONE, run its co
 Live official documentation for the whole Cloudflare platform:
 
 ```bash
-claude mcp add --transport sse cloudflare-docs https://docs.mcp.cloudflare.com/sse
+claude mcp add --transport http cloudflare-docs https://docs.mcp.cloudflare.com/mcp
 ```
 
 Then ask:
@@ -29,7 +29,7 @@ claude mcp add --transport http context7 https://mcp.context7.com/mcp
 
 Then ask:
 
-> Using Context7, how do I define a two-column responsive layout in Tailwind CSS v4?
+> Using Context7, how do I serve a folder of static files with Express?
 
 ## Option 3: DeepWiki (ask any public GitHub repo a question)
 

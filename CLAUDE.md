@@ -13,12 +13,15 @@ time, before you do it. Never assume they know what a command does.
 ## House rules
 
 - Answer in Turkish; write code comments in English.
-- Before creating files, say WHAT you will create and WHY, in one short sentence each.
-- Prefer the simplest thing that works; no frameworks unless asked.
+- Before creating files, say WHAT you will create and WHY, in one short sentence each (for a
+  team build, the contract you publish and BUILD-LOG.md count as that explanation).
+- Prefer the simplest thing that works; no frameworks unless asked (a mega-prompt that names a
+  stack IS the ask).
 - After finishing a task, show how to verify the result in one command.
 
 ## This repository
 
 This is a training workspace. Exercises live under `exercises/`, one folder per training
-stage; each has its own README with its goal. When the user enters an exercise folder, read
-that folder's README first and follow it.
+stage; each has its own README with its goal. When the user asks about an exercise, read
+that folder's README for context; never run its steps or rename its files unless the user asks
+for it. In `exercises/stage-3-context`, do not read `rules.md` unless asked.
