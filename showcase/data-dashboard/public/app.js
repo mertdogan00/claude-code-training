@@ -1,182 +1,254 @@
-// Satis Analitik Paneli - frontend state, fetches, charts, table, filters
+/* Satis Analitik Paneli, front end. One state object drives every screen. */
+
+const RATES = {
+  TL: { rate: 1, symbol: '₺' },
+  USD: { rate: 0.0241, symbol: '$' },
+  EUR: { rate: 0.0222, symbol: '€' }
+};
+
+const SCREEN_TITLES = {
+  overview: ['Genel bakış', 'Seçili döneme ait özet'],
+  products: ['Ürünler', 'Ciroya göre ürün performansı'],
+  cities: ['Şehirler', 'Ciroya göre şehir dağılımı'],
+  settings: ['Ayarlar', 'Tema, para birimi, hedef ve veri']
+};
+
+const ROUTES = { overview: 'genel-bakis', products: 'urunler', cities: 'sehirler', settings: 'ayarlar' };
+const SCREEN_BY_ROUTE = Object.fromEntries(Object.entries(ROUTES).map(([k, v]) => [v, k]));
+
+const DEFAULTS = { theme: 'dark', currency: 'TL', target: 400000 };
+const STORE_KEY = 'sap.settings.v1';
 
 const state = {
-  from: '',
-  to: '',
-  category: '',
-  city: '',
+  screen: 'overview',
+  settings: { ...DEFAULTS },
+  filters: { from: '', to: '', category: '', city: '' },
+  preset: 'all',
   granularity: 'day',
-};
-
-const tableState = {
-  sortKey: 'revenue',
-  sortDir: 'desc',
   search: '',
-  items: [],
+  sort: { key: 'revenue', dir: 'desc' },
+  meta: null,
+  data: {},
+  loading: true
 };
 
-const currencyFmt = new Intl.NumberFormat('tr-TR', {
-  style: 'currency',
-  currency: 'TRY',
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
+const charts = { timeline: null, donut: null, cities: null };
+const $ = (id) => document.getElementById(id);
 
-const numberFmt = new Intl.NumberFormat('tr-TR', {
-  maximumFractionDigits: 0,
-});
+/* --------------------------------------------------------------- settings */
 
-function formatMoney(value) {
-  if (value === null || value === undefined || Number.isNaN(value)) return '-';
-  return currencyFmt.format(value);
-}
-
-function formatCount(value) {
-  if (value === null || value === undefined || Number.isNaN(value)) return '-';
-  return numberFmt.format(value);
-}
-
-function formatChange(value) {
-  if (value === null || value === undefined) return '-';
-  const sign = value > 0 ? '+' : '';
-  return `${sign}${value.toFixed(1).replace('.', ',')}%`;
-}
-
-function buildQuery(extra) {
-  const params = new URLSearchParams();
-  if (state.from) params.set('from', state.from);
-  if (state.to) params.set('to', state.to);
-  if (state.category) params.set('category', state.category);
-  if (state.city) params.set('city', state.city);
-  if (extra) {
-    for (const key of Object.keys(extra)) {
-      if (extra[key]) params.set(key, extra[key]);
-    }
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) Object.assign(state.settings, JSON.parse(raw));
+  } catch {
+    // A blocked or empty storage just means the defaults stay.
   }
-  const qs = params.toString();
-  return qs ? `?${qs}` : '';
 }
 
-async function fetchJson(url) {
-  const res = await fetch(url);
+function saveSettings() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify(state.settings));
+  } catch {
+    // Nothing to do, the session keeps working with in-memory settings.
+  }
+}
+
+/* -------------------------------------------------------------- formatting */
+
+function money(valueTl) {
+  const c = RATES[state.settings.currency] || RATES.TL;
+  const converted = valueTl * c.rate;
+  const decimals = converted < 100 && converted > 0 ? 2 : 0;
+  return `${c.symbol}${converted.toLocaleString('tr-TR', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  })}`;
+}
+
+const count = (v) => Math.round(v).toLocaleString('tr-TR');
+const percent = (v) => `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`;
+const share = (v) => `%${v.toFixed(1)}`;
+
+function themeColors() {
+  const s = getComputedStyle(document.documentElement);
+  return {
+    accent: s.getPropertyValue('--accent').trim(),
+    ink: s.getPropertyValue('--ink').trim(),
+    muted: s.getPropertyValue('--muted').trim(),
+    line: s.getPropertyValue('--line').trim(),
+    surface: s.getPropertyValue('--surface').trim()
+  };
+}
+
+function palette(n) {
+  const base = ['#f0803c', '#3fb27f', '#5c8ce0', '#e0b341', '#b06fd8', '#e0604c'];
+  return Array.from({ length: n }, (_, i) => base[i % base.length]);
+}
+
+function toast(message) {
+  const el = $('toast');
+  el.textContent = message;
+  el.hidden = false;
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => { el.hidden = true; }, 2600);
+}
+
+/* ------------------------------------------------------------------ data */
+
+function queryString(extra = {}) {
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries({ ...state.filters, ...extra })) {
+    if (v) params.set(k, v);
+  }
+  const s = params.toString();
+  return s ? `?${s}` : '';
+}
+
+async function getJson(path) {
+  const res = await fetch(path);
+  if (!res.ok) throw new Error(`${path} returned ${res.status}`);
   return res.json();
 }
 
-let timelineChart = null;
-let categoryChart = null;
-let cityChart = null;
-
-const CATEGORY_COLORS = [
-  '#E2643C', '#43C08A', '#5B8DEF', '#E2B33C', '#B15BE2',
-  '#3CC7E2', '#E23C7E', '#8DE23C', '#9AA3AF', '#E29C3C',
-];
-
-function categoryColor(index) {
-  return CATEGORY_COLORS[index % CATEGORY_COLORS.length];
-}
-
 async function loadMeta() {
-  const meta = await fetchJson('/api/meta');
-  const categorySelect = document.getElementById('category-select');
-  const citySelect = document.getElementById('city-select');
+  state.meta = await getJson('/api/meta');
+  $('side-rows').textContent = count(state.meta.rows);
+  const source = state.meta.source || '';
+  const label = source.startsWith('csv:') ? 'repo CSV' : source === 'upload' ? 'yüklenen CSV' : 'üretilen veri';
+  $('side-source').textContent = label;
+  $('data-rows').textContent = `${count(state.meta.rows)} kayıt`;
+  $('data-source').textContent = source.startsWith('csv:')
+    ? `Depodaki sales-data.csv dosyasından yüklendi (${state.meta.dateRange.min} - ${state.meta.dateRange.max})`
+    : source === 'upload'
+      ? `Yüklenen CSV dosyasından (${state.meta.dateRange.min} - ${state.meta.dateRange.max})`
+      : `Sunucu tarafında üretildi (${state.meta.dateRange.min} - ${state.meta.dateRange.max})`;
+  fillSelect($('f-category'), state.meta.categories);
+  fillSelect($('f-city'), state.meta.cities);
+}
 
-  for (const category of meta.categories) {
-    const option = document.createElement('option');
-    option.value = category;
-    option.textContent = category;
-    categorySelect.appendChild(option);
+function fillSelect(el, values) {
+  const current = el.value;
+  el.innerHTML = '<option value="">Tümü</option>';
+  for (const v of values) {
+    const opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = v;
+    el.appendChild(opt);
   }
+  el.value = values.includes(current) ? current : '';
+}
 
-  for (const city of meta.cities) {
-    const option = document.createElement('option');
-    option.value = city;
-    option.textContent = city;
-    citySelect.appendChild(option);
-  }
+async function refresh() {
+  state.loading = true;
+  renderLoading();
+  const q = queryString();
+  const [kpis, timeline, categories, products, cities, insights] = await Promise.all([
+    getJson(`/api/kpis${q}`),
+    getJson(`/api/timeline${queryString({ granularity: state.granularity })}`),
+    getJson(`/api/categories${q}`),
+    getJson(`/api/products${q}`),
+    getJson(`/api/cities${q}`),
+    getJson(`/api/insights${q}`)
+  ]);
+  state.data = { kpis, timeline, categories, products, cities, insights };
+  state.loading = false;
+  renderAll();
+}
 
-  if (meta.dateRange && meta.dateRange.min && meta.dateRange.max) {
-    const fromInput = document.getElementById('from-date');
-    const toInput = document.getElementById('to-date');
-    fromInput.min = meta.dateRange.min;
-    fromInput.max = meta.dateRange.max;
-    toInput.min = meta.dateRange.min;
-    toInput.max = meta.dateRange.max;
+/* --------------------------------------------------------------- rendering */
 
-    const maxDate = new Date(`${meta.dateRange.max}T00:00:00Z`);
-    const defaultFrom = new Date(maxDate);
-    defaultFrom.setUTCDate(defaultFrom.getUTCDate() - 13);
-    const defaultFromStr = defaultFrom.toISOString().slice(0, 10);
-
-    state.from = defaultFromStr < meta.dateRange.min ? meta.dateRange.min : defaultFromStr;
-    state.to = meta.dateRange.max;
-    fromInput.value = state.from;
-    toInput.value = state.to;
+function renderLoading() {
+  const grid = $('kpi-grid');
+  if (grid.children.length === 0) {
+    grid.innerHTML = Array.from({ length: 4 }, () =>
+      '<article class="kpi is-loading"><span class="kpi-label">.</span><span class="kpi-value">.</span><span class="delta">.</span><div class="skeleton" style="height:58px"></div></article>'
+    ).join('');
   }
 }
 
-async function loadKpis() {
-  const data = await fetchJson(`/api/kpis${buildQuery()}`);
-  const map = {
-    revenue: { value: data.current.revenue, change: data.change.revenue, fmt: formatMoney },
-    units: { value: data.current.units, change: data.change.units, fmt: formatCount },
-    orders: { value: data.current.orders, change: data.change.orders, fmt: formatCount },
-    avgBasket: { value: data.current.avgBasket, change: data.change.avgBasket, fmt: formatMoney },
-  };
-
-  for (const key of Object.keys(map)) {
-    const { value, change, fmt } = map[key];
-    document.getElementById(`kpi-${key}-value`).textContent = fmt(value);
-    const changeEl = document.getElementById(`kpi-${key}-change`);
-    const subEl = document.getElementById(`kpi-${key}-sub`);
-    changeEl.classList.remove('positive', 'negative');
-    if (change === null || change === undefined) {
-      changeEl.textContent = '';
-      subEl.textContent = 'önceki dönem verisi yok';
-    } else {
-      changeEl.textContent = formatChange(change);
-      changeEl.classList.add(change >= 0 ? 'positive' : 'negative');
-      subEl.textContent = 'önceki döneme göre';
-    }
-  }
+function renderAll() {
+  renderKpis();
+  renderTarget();
+  renderTimeline();
+  renderDonut();
+  renderInsights();
+  renderProducts();
+  renderCities();
+  renderFilterState();
 }
 
-async function loadTimeline() {
-  const data = await fetchJson(`/api/timeline${buildQuery({ granularity: state.granularity })}`);
-  const labels = data.points.map((p) => p.label);
-  const revenues = data.points.map((p) => p.revenue);
-  const pointRadius = data.points.length <= 1 ? 5 : 0;
+function deltaClass(v) {
+  if (v === null || Math.abs(v) < 0.05) return 'flat';
+  return v > 0 ? 'up' : 'down';
+}
 
-  const canvas = document.getElementById('timeline-chart');
-  const ctx = canvas.getContext('2d');
+function deltaText(v) {
+  return v === null
+    ? '<span title="Seçili aralıktan önce veri yok">önceki dönem yok</span>'
+    : `${percent(v)} <small>önceki döneme göre</small>`;
+}
 
-  if (timelineChart) {
-    timelineChart.data.labels = labels;
-    timelineChart.data.datasets[0].data = revenues;
-    timelineChart.data.datasets[0].pointRadius = pointRadius;
-    timelineChart.update();
-    return;
-  }
+function renderKpis() {
+  const { current, change } = state.data.kpis;
+  const cards = [
+    { label: 'Ciro', value: money(current.revenue), change: change.revenue },
+    { label: 'Satılan adet', value: count(current.units), change: change.units },
+    { label: 'Sipariş sayısı', value: count(current.orders), change: change.orders },
+    { label: 'Ortalama sepet', value: money(current.avgBasket), change: change.avgBasket }
+  ];
+  $('kpi-grid').innerHTML = cards.map((c) => `
+    <article class="kpi">
+      <span class="kpi-label">${c.label}</span>
+      <span class="kpi-value">${c.value}</span>
+      <span class="delta ${deltaClass(c.change)}">${deltaText(c.change)}</span>
+    </article>`).join('');
+}
 
-  const gradient = ctx.createLinearGradient(0, 0, 0, 260);
-  gradient.addColorStop(0, 'rgba(226, 100, 60, 0.35)');
-  gradient.addColorStop(1, 'rgba(226, 100, 60, 0.02)');
+function renderTarget() {
+  const revenue = state.data.kpis.current.revenue;
+  const target = Math.max(1, Number(state.settings.target) || DEFAULTS.target);
+  const ratio = Math.min(revenue / target, 1);
+  const reached = revenue >= target;
+  $('target-current').textContent = money(revenue);
+  $('target-total').textContent = `hedef ${money(target)}`;
+  const bar = $('target-bar');
+  bar.style.width = `${ratio * 100}%`;
+  bar.classList.toggle('reached', reached);
+  $('target-msg').textContent = reached
+    ? `Hedef aşıldı. Seçili dönemde hedefin %${((revenue / target) * 100).toFixed(0)} kadarına ulaşıldı.`
+    : `Hedefin %${((revenue / target) * 100).toFixed(0)} kadarı tamamlandı, kalan ${money(target - revenue)}.`;
+}
 
-  timelineChart = new Chart(ctx, {
+function destroyChart(key) {
+  if (charts[key]) { charts[key].destroy(); charts[key] = null; }
+}
+
+function renderTimeline() {
+  const points = state.data.timeline.points;
+  const box = $('chart-timeline').parentElement;
+  const empty = $('empty-timeline');
+  box.hidden = points.length === 0;
+  empty.hidden = points.length > 0;
+  destroyChart('timeline');
+  if (points.length === 0) return;
+  const c = themeColors();
+  const rate = (RATES[state.settings.currency] || RATES.TL).rate;
+  charts.timeline = new Chart($('chart-timeline'), {
     type: 'line',
     data: {
-      labels,
+      labels: points.map((p) => p.bucket),
       datasets: [{
-        label: 'Gelir',
-        data: revenues,
-        borderColor: '#E2643C',
-        backgroundColor: gradient,
+        label: 'Ciro',
+        data: points.map((p) => p.revenue * rate),
+        borderColor: c.accent,
+        backgroundColor: 'rgba(240, 128, 60, 0.14)',
         fill: true,
-        tension: 0.35,
-        pointRadius,
-        pointBackgroundColor: '#E2643C',
+        tension: 0.32,
+        pointRadius: points.length > 20 ? 0 : 3,
         pointHoverRadius: 5,
-        borderWidth: 2,
-      }],
+        borderWidth: 2
+      }]
     },
     options: {
       responsive: true,
@@ -185,128 +257,123 @@ async function loadTimeline() {
         legend: { display: false },
         tooltip: {
           callbacks: {
-            label: (item) => `Gelir: ${formatMoney(item.parsed.y)}`,
-          },
-        },
+            label: (ctx) => `Ciro: ${money(points[ctx.dataIndex].revenue)}`,
+            afterLabel: (ctx) => `Adet: ${count(points[ctx.dataIndex].units)}`
+          }
+        }
       },
       scales: {
-        x: {
-          grid: { display: false },
-          ticks: { color: '#9AA3AF', maxRotation: 0, autoSkip: true },
-        },
-        y: {
-          grid: { color: '#252A33' },
-          ticks: {
-            color: '#9AA3AF',
-            callback: (value) => formatCount(value),
-          },
-        },
-      },
+        x: { grid: { color: c.line }, ticks: { color: c.muted, maxRotation: 0, autoSkipPadding: 18 } },
+        y: { grid: { color: c.line }, ticks: { color: c.muted, callback: (v) => money(v / rate) } }
+      }
+    }
+  });
+}
+
+function renderDonut() {
+  const items = state.data.categories.items;
+  const box = $('chart-donut').parentElement;
+  const empty = $('empty-donut');
+  box.hidden = items.length === 0;
+  empty.hidden = items.length > 0;
+  $('donut-legend').innerHTML = '';
+  destroyChart('donut');
+  if (items.length === 0) return;
+  const colors = palette(items.length);
+  const c = themeColors();
+  charts.donut = new Chart($('chart-donut'), {
+    type: 'doughnut',
+    data: {
+      labels: items.map((i) => i.category),
+      datasets: [{ data: items.map((i) => i.revenue), backgroundColor: colors, borderColor: c.surface, borderWidth: 2 }]
     },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '58%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${money(ctx.raw)} (${share(items[ctx.dataIndex].share)})` } }
+      },
+      onClick: (_e, els) => { if (els.length) applyCategory(items[els[0].index].category); }
+    }
+  });
+  $('donut-legend').innerHTML = items.map((i, idx) => `
+    <li data-category="${i.category}">
+      <span class="dot" style="background:${colors[idx]}"></span>
+      <span class="lg-name">${i.category}</span>
+      <span class="lg-val">${share(i.share)} · ${money(i.revenue)}</span>
+    </li>`).join('');
+}
+
+function insightValue(item) {
+  if (item.valueType === 'money') return money(item.value);
+  if (item.valueType === 'percent') return percent(item.value);
+  return count(item.value);
+}
+
+function renderInsights() {
+  const items = state.data.insights.items;
+  $('insights').innerHTML = items.length === 0
+    ? '<div class="empty">Bu filtrelerle çıkarılacak bir bulgu yok.</div>'
+    : items.map((i) => `
+      <article class="insight ${i.tone}">
+        <b>${i.title}</b>
+        <span class="i-value">${insightValue(i)}</span>
+        <p>${i.text}</p>
+      </article>`).join('');
+  $('bell-badge').textContent = String(Math.min(items.length, 3));
+  $('bell-list').innerHTML = items.slice(0, 3).map((i) => `
+    <li><b>${i.title} · ${insightValue(i)}</b><span>${i.text}</span></li>`).join('')
+    || '<li><span>Şu an gösterilecek bulgu yok.</span></li>';
+}
+
+function sortedProducts() {
+  const term = state.search.trim().toLocaleLowerCase('tr');
+  const rows = state.data.products.items.filter((p) => !term || p.product.toLocaleLowerCase('tr').includes(term));
+  const { key, dir } = state.sort;
+  const sign = dir === 'asc' ? 1 : -1;
+  return rows.sort((a, b) =>
+    typeof a[key] === 'string' ? sign * a[key].localeCompare(b[key], 'tr') : sign * (a[key] - b[key]));
+}
+
+function renderProducts() {
+  const rows = sortedProducts();
+  const max = rows.reduce((m, r) => Math.max(m, r.revenue), 0) || 1;
+  $('empty-products').hidden = rows.length > 0;
+  $('p-table').hidden = rows.length === 0;
+  $('p-body').innerHTML = rows.map((r) => `
+    <tr>
+      <td>${r.product}</td>
+      <td><span class="tag">${r.category}</span></td>
+      <td class="num bar-cell">${money(r.revenue)}<i style="width:${(r.revenue / max) * 70}px"></i></td>
+      <td class="num">${count(r.units)}</td>
+      <td class="num">${count(r.orders)}</td>
+      <td class="num">${share(r.share)}</td>
+    </tr>`).join('');
+  document.querySelectorAll('#p-table th').forEach((th) => {
+    th.classList.toggle('is-sorted', th.dataset.sort === state.sort.key);
+    th.classList.toggle('asc', th.dataset.sort === state.sort.key && state.sort.dir === 'asc');
   });
 }
 
-async function loadCategories() {
-  const data = await fetchJson(`/api/categories${buildQuery()}`);
-  const canvas = document.getElementById('category-chart');
-  const ctx = canvas.getContext('2d');
-
-  const labels = data.items.map((i) => i.category);
-  const values = data.items.map((i) => i.revenue);
-  const colors = data.items.map((_, idx) => categoryColor(idx));
-
-  if (categoryChart) {
-    categoryChart.data.labels = labels;
-    categoryChart.data.datasets[0].data = values;
-    categoryChart.data.datasets[0].backgroundColor = colors;
-    categoryChart.update();
-  } else {
-    categoryChart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels,
-        datasets: [{
-          data: values,
-          backgroundColor: colors,
-          borderColor: '#171A21',
-          borderWidth: 2,
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '65%',
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: (item) => {
-                const entry = data.items[item.dataIndex];
-                return `${entry.category}: ${formatMoney(entry.revenue)} (%${entry.share.toFixed(1).replace('.', ',')})`;
-              },
-            },
-          },
-        },
-        onClick: (evt, elements) => {
-          if (!elements.length) return;
-          const idx = elements[0].index;
-          const clicked = data.items[idx].category;
-          state.category = state.category === clicked ? '' : clicked;
-          document.getElementById('category-select').value = state.category;
-          refreshAll();
-        },
-      },
-    });
-  }
-
-  const legend = document.getElementById('category-legend');
-  legend.innerHTML = '';
-  data.items.forEach((item, idx) => {
-    const li = document.createElement('li');
-    if (state.category === item.category) li.classList.add('active');
-    li.innerHTML = `
-      <span class="swatch" style="background:${categoryColor(idx)}"></span>
-      <span class="legend-name">${item.category}</span>
-      <span class="legend-share">%${item.share.toFixed(1).replace('.', ',')}</span>
-    `;
-    li.addEventListener('click', () => {
-      state.category = state.category === item.category ? '' : item.category;
-      document.getElementById('category-select').value = state.category;
-      refreshAll();
-    });
-    legend.appendChild(li);
-  });
-}
-
-async function loadCities() {
-  const data = await fetchJson(`/api/cities${buildQuery()}`);
-  const canvas = document.getElementById('city-chart');
-  const ctx = canvas.getContext('2d');
-
-  const labels = data.items.map((i) => i.city);
-  const revenues = data.items.map((i) => i.revenue);
-  const units = data.items.map((i) => i.units);
-
-  if (cityChart) {
-    cityChart.data.labels = labels;
-    cityChart.data.datasets[0].data = revenues;
-    cityChart.data.datasets[0].units = units;
-    cityChart.update();
-    return;
-  }
-
-  cityChart = new Chart(ctx, {
+function renderCities() {
+  const items = state.data.cities.items;
+  const box = $('chart-cities').parentElement;
+  box.hidden = items.length === 0;
+  $('empty-cities').hidden = items.length > 0;
+  $('c-body').innerHTML = items.map((i) => `
+    <tr><td>${i.city}</td><td class="num">${money(i.revenue)}</td><td class="num">${count(i.units)}</td><td class="num">${share(i.share)}</td></tr>`
+  ).join('');
+  destroyChart('cities');
+  if (items.length === 0) return;
+  const c = themeColors();
+  const rate = (RATES[state.settings.currency] || RATES.TL).rate;
+  charts.cities = new Chart($('chart-cities'), {
     type: 'bar',
     data: {
-      labels,
-      datasets: [{
-        label: 'Gelir',
-        data: revenues,
-        units,
-        backgroundColor: '#E2643C',
-        borderRadius: 6,
-        maxBarThickness: 28,
-      }],
+      labels: items.map((i) => i.city),
+      datasets: [{ data: items.map((i) => i.revenue * rate), backgroundColor: c.accent, borderRadius: 6, maxBarThickness: 54 }]
     },
     options: {
       responsive: true,
@@ -315,205 +382,198 @@ async function loadCities() {
         legend: { display: false },
         tooltip: {
           callbacks: {
-            label: (item) => {
-              const u = item.dataset.units[item.dataIndex];
-              return [`Gelir: ${formatMoney(item.parsed.y)}`, `Adet: ${formatCount(u)}`];
-            },
-          },
-        },
+            label: (ctx) => `Ciro: ${money(items[ctx.dataIndex].revenue)}`,
+            afterLabel: (ctx) => `Adet: ${count(items[ctx.dataIndex].units)} · Pay: ${share(items[ctx.dataIndex].share)}`
+          }
+        }
       },
       scales: {
-        x: {
-          grid: { display: false },
-          ticks: { color: '#9AA3AF', maxRotation: 0, autoSkip: true },
-        },
-        y: {
-          grid: { color: '#252A33' },
-          ticks: {
-            color: '#9AA3AF',
-            callback: (value) => formatCount(value),
-          },
-        },
-      },
-    },
-  });
-}
-
-async function loadInsights() {
-  const data = await fetchJson(`/api/insights${buildQuery()}`);
-  const list = document.getElementById('insight-list');
-  list.innerHTML = '';
-
-  if (!data.insights || !data.insights.length) {
-    const li = document.createElement('li');
-    li.className = 'insight-item';
-    li.innerHTML = '<p class="insight-text">Bu filtre için iç görüş bulunamadı.</p>';
-    list.appendChild(li);
-    return;
-  }
-
-  for (const insight of data.insights) {
-    const li = document.createElement('li');
-    li.className = 'insight-item';
-    li.innerHTML = `
-      <p class="insight-title">${insight.title}</p>
-      <p class="insight-text">${insight.text}</p>
-      <div class="insight-value-row">
-        <p class="insight-value">
-          <span class="insight-value-figure">${insight.valueLabel}</span>
-        </p>
-      </div>
-    `;
-    list.appendChild(li);
-  }
-}
-
-async function loadProducts() {
-  const data = await fetchJson(`/api/products${buildQuery()}`);
-  tableState.items = data.items;
-  renderTable();
-}
-
-function renderTable() {
-  const body = document.getElementById('product-table-body');
-  body.innerHTML = '';
-
-  const search = tableState.search.trim().toLowerCase();
-  let rows = tableState.items.filter((item) => {
-    if (!search) return true;
-    return item.product.toLowerCase().includes(search) || item.category.toLowerCase().includes(search);
-  });
-
-  const { sortKey, sortDir } = tableState;
-  rows = rows.slice().sort((a, b) => {
-    let av = a[sortKey];
-    let bv = b[sortKey];
-    if (typeof av === 'string') {
-      av = av.toLowerCase();
-      bv = bv.toLowerCase();
-      return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
-    }
-    return sortDir === 'asc' ? av - bv : bv - av;
-  });
-
-  if (!rows.length) {
-    const tr = document.createElement('tr');
-    tr.className = 'empty-row';
-    tr.innerHTML = '<td colspan="6">Sonuç bulunamadı</td>';
-    body.appendChild(tr);
-    return;
-  }
-
-  for (const item of rows) {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${item.product}</td>
-      <td>${item.category}</td>
-      <td>${formatMoney(item.revenue)}</td>
-      <td>${formatCount(item.units)}</td>
-      <td>${formatCount(item.orders)}</td>
-      <td>%${item.share.toFixed(1).replace('.', ',')}</td>
-    `;
-    body.appendChild(tr);
-  }
-
-  document.querySelectorAll('#product-table th').forEach((th) => {
-    th.classList.remove('sorted-asc', 'sorted-desc');
-    if (th.dataset.sort === sortKey) {
-      th.classList.add(sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc');
-    }
-  });
-}
-
-async function refreshAll() {
-  await Promise.all([
-    loadKpis(),
-    loadTimeline(),
-    loadCategories(),
-    loadCities(),
-    loadInsights(),
-    loadProducts(),
-  ]);
-}
-
-function wireFilterBar() {
-  const fromInput = document.getElementById('from-date');
-  const toInput = document.getElementById('to-date');
-  const categorySelect = document.getElementById('category-select');
-  const citySelect = document.getElementById('city-select');
-  const resetBtn = document.getElementById('reset-filters');
-
-  fromInput.addEventListener('change', () => {
-    state.from = fromInput.value;
-    refreshAll();
-  });
-
-  toInput.addEventListener('change', () => {
-    state.to = toInput.value;
-    refreshAll();
-  });
-
-  categorySelect.addEventListener('change', () => {
-    state.category = categorySelect.value;
-    refreshAll();
-  });
-
-  citySelect.addEventListener('change', () => {
-    state.city = citySelect.value;
-    refreshAll();
-  });
-
-  resetBtn.addEventListener('click', () => {
-    state.from = '';
-    state.to = '';
-    state.category = '';
-    state.city = '';
-    fromInput.value = '';
-    toInput.value = '';
-    categorySelect.value = '';
-    citySelect.value = '';
-    refreshAll();
-  });
-}
-
-function wireGranularitySwitch() {
-  const buttons = document.querySelectorAll('#granularity-switch button');
-  buttons.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      state.granularity = btn.dataset.granularity;
-      buttons.forEach((b) => b.classList.toggle('active', b === btn));
-      loadTimeline();
-    });
-  });
-}
-
-function wireProductTable() {
-  const searchInput = document.getElementById('product-search');
-  searchInput.addEventListener('input', () => {
-    tableState.search = searchInput.value;
-    renderTable();
-  });
-
-  document.querySelectorAll('#product-table th').forEach((th) => {
-    th.addEventListener('click', () => {
-      const key = th.dataset.sort;
-      if (tableState.sortKey === key) {
-        tableState.sortDir = tableState.sortDir === 'asc' ? 'desc' : 'asc';
-      } else {
-        tableState.sortKey = key;
-        tableState.sortDir = 'desc';
+        x: { grid: { display: false }, ticks: { color: c.muted } },
+        y: { grid: { color: c.line }, ticks: { color: c.muted, callback: (v) => money(v / rate) } }
       }
-      renderTable();
-    });
+    }
   });
 }
 
-async function init() {
-  wireFilterBar();
-  wireGranularitySwitch();
-  wireProductTable();
-  await loadMeta();
-  await refreshAll();
+function renderFilterState() {
+  const active = Object.values(state.filters).some(Boolean);
+  $('f-clear').hidden = !active;
+  const parts = [];
+  if (state.filters.from || state.filters.to) parts.push(`${state.filters.from || 'başlangıç'} - ${state.filters.to || 'bitiş'}`);
+  if (state.filters.category) parts.push(state.filters.category);
+  if (state.filters.city) parts.push(state.filters.city);
+  const [, sub] = SCREEN_TITLES[state.screen];
+  $('screen-sub').textContent = parts.length ? `Filtre: ${parts.join(' · ')}` : sub;
 }
 
-init();
+/* --------------------------------------------------------------- behaviour */
+
+function applyTheme() {
+  document.documentElement.dataset.theme = state.settings.theme;
+  document.querySelectorAll('#set-theme button').forEach((b) =>
+    b.classList.toggle('is-active', b.dataset.theme === state.settings.theme));
+  document.querySelectorAll('#set-currency button').forEach((b) =>
+    b.classList.toggle('is-active', b.dataset.currency === state.settings.currency));
+  $('set-target').value = state.settings.target;
+}
+
+function screenFromHash() {
+  return SCREEN_BY_ROUTE[location.hash.replace('#', '')] || 'overview';
+}
+
+function showScreen(name) {
+  state.screen = name;
+  if (location.hash !== `#${ROUTES[name]}`) location.hash = ROUTES[name];
+  document.querySelectorAll('.screen').forEach((s) => s.classList.toggle('is-active', s.id === `screen-${name}`));
+  document.querySelectorAll('.nav-item').forEach((b) => b.classList.toggle('is-active', b.dataset.screen === name));
+  const [title] = SCREEN_TITLES[name];
+  $('screen-title').textContent = title;
+  $('filterbar').hidden = name === 'settings';
+  renderFilterState();
+  window.scrollTo({ top: 0 });
+  // A chart built on a hidden screen has no size yet, so it is measured on reveal.
+  requestAnimationFrame(() => Object.values(charts).forEach((c) => c && c.resize()));
+}
+
+function presetRange(days) {
+  const max = state.meta && state.meta.dateRange.max;
+  if (!max) return { from: '', to: '' };
+  const end = new Date(`${max}T00:00:00Z`);
+  const start = new Date(end.getTime() - (days - 1) * 86400000);
+  return { from: start.toISOString().slice(0, 10), to: max };
+}
+
+function applyPreset(value) {
+  state.preset = value;
+  if (value === 'all') { state.filters.from = ''; state.filters.to = ''; }
+  else if (value !== 'custom') Object.assign(state.filters, presetRange(Number(value)));
+  $('f-from').value = state.filters.from;
+  $('f-to').value = state.filters.to;
+  refresh();
+}
+
+function applyCategory(category) {
+  state.filters.category = state.filters.category === category ? '' : category;
+  $('f-category').value = state.filters.category;
+  showScreen('overview');
+  refresh();
+  toast(state.filters.category ? `Kategori filtresi: ${category}` : 'Kategori filtresi kaldırıldı');
+}
+
+function bindEvents() {
+  document.querySelectorAll('[data-screen]').forEach((el) =>
+    el.addEventListener('click', () => { showScreen(el.dataset.screen); $('bell-menu').hidden = true; }));
+
+  $('f-preset').addEventListener('change', (e) => applyPreset(e.target.value));
+  for (const [id, key] of [['f-from', 'from'], ['f-to', 'to'], ['f-category', 'category'], ['f-city', 'city']]) {
+    $(id).addEventListener('change', (e) => {
+      state.filters[key] = e.target.value;
+      if (key === 'from' || key === 'to') { state.preset = 'custom'; $('f-preset').value = 'custom'; }
+      refresh();
+    });
+  }
+  $('f-clear').addEventListener('click', () => {
+    state.filters = { from: '', to: '', category: '', city: '' };
+    state.preset = 'all';
+    $('f-preset').value = 'all';
+    $('f-from').value = '';
+    $('f-to').value = '';
+    $('f-category').value = '';
+    $('f-city').value = '';
+    refresh();
+    toast('Filtreler temizlendi');
+  });
+
+  document.querySelectorAll('#granularity button').forEach((b) => b.addEventListener('click', () => {
+    state.granularity = b.dataset.g;
+    document.querySelectorAll('#granularity button').forEach((x) => x.classList.toggle('is-active', x === b));
+    refresh();
+  }));
+
+  $('donut-legend').addEventListener('click', (e) => {
+    const li = e.target.closest('li[data-category]');
+    if (li) applyCategory(li.dataset.category);
+  });
+
+  $('p-search').addEventListener('input', (e) => { state.search = e.target.value; renderProducts(); });
+  document.querySelectorAll('#p-table th[data-sort]').forEach((th) => th.addEventListener('click', () => {
+    const key = th.dataset.sort;
+    state.sort = state.sort.key === key
+      ? { key, dir: state.sort.dir === 'desc' ? 'asc' : 'desc' }
+      : { key, dir: key === 'product' || key === 'category' ? 'asc' : 'desc' };
+    renderProducts();
+  }));
+
+  $('bell').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const menu = $('bell-menu');
+    menu.hidden = !menu.hidden;
+    $('bell').setAttribute('aria-expanded', String(!menu.hidden));
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.bell-wrap')) $('bell-menu').hidden = true;
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') $('bell-menu').hidden = true; });
+
+  document.querySelectorAll('#set-theme button').forEach((b) => b.addEventListener('click', () => {
+    state.settings.theme = b.dataset.theme;
+    saveSettings();
+    applyTheme();
+    renderAll();
+    toast(`Tema: ${b.textContent}`);
+  }));
+  document.querySelectorAll('#set-currency button').forEach((b) => b.addEventListener('click', () => {
+    state.settings.currency = b.dataset.currency;
+    saveSettings();
+    applyTheme();
+    renderAll();
+    toast(`Para birimi: ${state.settings.currency}`);
+  }));
+  $('set-target').addEventListener('input', (e) => {
+    state.settings.target = Math.max(0, Number(e.target.value) || 0);
+    saveSettings();
+    renderTarget();
+  });
+
+  $('set-import').addEventListener('click', async () => {
+    const note = $('import-note');
+    const file = $('set-csv').files[0];
+    if (!file) { note.className = 'note error'; note.textContent = 'Önce bir CSV dosyası seçin.'; return; }
+    note.className = 'note';
+    note.textContent = 'Yükleniyor...';
+    try {
+      const csv = await file.text();
+      const res = await fetch('/api/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ csv })
+      });
+      const out = await res.json();
+      if (!out.ok) throw new Error(out.error || 'İçe aktarma başarısız');
+      note.textContent = `${out.rows} satır içe aktarıldı.`;
+      await loadMeta();
+      await refresh();
+      toast('Veri seti değiştirildi');
+    } catch (err) {
+      note.className = 'note error';
+      note.textContent = `Hata: ${err.message}`;
+    }
+  });
+}
+
+async function start() {
+  loadSettings();
+  applyTheme();
+  bindEvents();
+  showScreen(screenFromHash());
+  window.addEventListener('hashchange', () => showScreen(screenFromHash()));
+  renderLoading();
+  try {
+    await loadMeta();
+    await refresh();
+  } catch (err) {
+    $('kpi-grid').innerHTML = `<div class="empty">Veri yüklenemedi: ${err.message}</div>`;
+  }
+}
+
+start();

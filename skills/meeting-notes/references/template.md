@@ -1,17 +1,17 @@
-# Output template (fill every section; delete nothing)
+# Çıktı şablonu (her bölümü doldur; hiçbirini silme)
 
 ## Özet
-<three sentences>
+<üç cümle>
 
 ## Kararlar
-1. <decision, one sentence, decider in parentheses when stated>
+1. <karar, tek cümle, belirtilmişse karar veren parantez içinde>
 
 ## Aksiyonlar
 | İş | Sahibi | Tarih |
 |---|---|---|
-| <action> | <owner or ?> | <date or ?> |
+| <aksiyon> | <sahibi ya da ?> | <tarih ya da ?> |
 
 ## Açık konular
-- <raised but unresolved>
+- <gündeme gelmiş ama çözülmemiş>
 
-**En acil takip:** <one line>
+**En acil takip:** <tek satır>

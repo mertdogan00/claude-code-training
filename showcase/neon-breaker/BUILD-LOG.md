@@ -1,280 +1,267 @@
-# BUILD-LOG: Neon Breaker
+# BUILD-LOG - Neon Breaker
 
-How a team of sub-agents built this app in one pass, from one pasted prompt.
-Recipe: `prompts/apps/neon-breaker.md`.
+Bu uygulama nasıl yapıldı: plan, takım, daha kimse tek satır yazmadan yayımlanan sözleşme, QA'nın
+yürüttüğü testler ve bulunup düzeltilen her hata.
 
-## 1. The plan the orchestrator printed first
+## 1. Plan (yapım başlamadan ekrana basıldı)
 
-1. Publish the CONTRACT (file list, port, API routes with their JSON shapes, the level definition
-   shape, the round result shape) and write it into BUILD-LOG.md.
-2. Scaffold `package.json` from the contract and install Express once, so every lead shares one
-   dependency tree instead of racing on `npm install`.
-3. Spawn Backend Lead and Frontend Lead in parallel; their file sets do not overlap.
-4. Integrate, boot the server, fix wiring gaps.
-5. Spawn QA Lead: turn the acceptance checklist into real checks, curl the API, drive a headless
-   browser, hunt three bugs on purpose (tunneling, stuck ball, leaderboard input abuse).
-6. Apply the QA fixes and take the screenshots.
-7. Write README.md and close BUILD-LOG.md.
-8. Clean check: wipe `node_modules`, reinstall, boot, verify HTTP 200 and a JSON API route, kill.
+1. SÖZLEŞMEYİ yayımla: dosya listesi, port, JSON şekilleriyle API yolları, bölüm tanımı, tur sonucu.
+2. Üç lider alt ajanı başlat, Backend ile Frontend'i paralel çalıştır.
+3. Backend Lideri: `package.json`, `server.js`, `node:sqlite` şeması, tohumlanmış demo skorları, skor tablosu API'si, doğrulama.
+4. Frontend Lideri: `public/index.html`, `public/style.css`, `public/app.js`, ürün kabuğu ve canvas oyunu.
+5. Orkestratör iki yarıyı birleştirir ve sunucuyu ayağa kaldırır.
+6. QA Lideri kabul kontrol listesini gerçek kontrollere çevirir, oyunu oynar, API'ye curl ile gider, bozuk olanı düzeltir.
+7. Masaüstü (1440x900) ve telefon (390x844) ekran görüntülerini al.
+8. `README.md` dosyasını yaz, `BUILD-LOG.md` dosyasını tamamla, çalıştırma komutuyla kapat.
 
-## 2. The team
+## 2. SÖZLEŞME (önce yayımlandı, ki paralel iş birbirine otursun)
 
-| role | owns | model | effort |
+Aşağıdaki her şey, tek satır uygulama kodu var olmadan önce sabitlendi. Backend Lideri ile Frontend
+Lideri hiç konuşmak zorunda kalmadı: ikisi de buna karşı yazdı.
+
+### 2.1 Dosya listesi ve sahiplik
+
+| dosya | sahibi | not |
+|---|---|---|
+| `package.json` | Backend Lideri | `"type": "module"`, `start` betiği `node server.js` çalıştırır |
+| `server.js` | Backend Lideri | Express + `node:sqlite`, `public/` ile `/api` yollarını sunar |
+| `.gitignore` | Backend Lideri | `node_modules/` ve `data.sqlite` yok sayılır |
+| `public/index.html` | Frontend Lideri | kabuğun tamamı, tek sayfa |
+| `public/style.css` | Frontend Lideri | tutarlı tek bir neon palet, üç tema, 390px'e kadar duyarlı |
+| `public/app.js` | Frontend Lideri | kabuk yönlendiricisi, ayarlar, canvas oyun döngüsü, fizik, ses |
+| `data.sqlite` | çalışma anı | ilk açılışta oluşturulur ve tohumlanır, gitignore'da, sıfırlamak için sil |
+| `README.md`, `BUILD-LOG.md` | Orkestratör | |
+| `screenshots/` | Orkestratör | masaüstü ve telefon PNG'leri |
+
+Başka hiçbir şey yok. Paketleyici yok, framework yok, CSS kütüphanesi yok, oyun motoru yok, ses
+dosyası yok.
+
+### 2.2 Port ve adres
+
+`const PORT = Number(process.env.PORT) || 3000;` ve `0.0.0.0` adresine bağlanır.
+Varsayılan çalıştırma, http://localhost:3000 üzerinde `node server.js`. `PORT=3001 node server.js`
+bunu değiştirir.
+
+### 2.3 API yolları ve JSON şekilleri
+
+| metot | yol | başarı | hata |
 |---|---|---|---|
-| Orchestrator | the contract, integration, judgement, screenshots, README, this log | Opus 5 | high |
-| Backend Lead | `server.js`, the SQLite schema, the seed, the leaderboard API, validation | Sonnet | medium |
-| Frontend Lead | `public/index.html`, `public/style.css`, `public/app.js`, the whole canvas game | Sonnet | medium |
-| QA Lead | the 6-item acceptance checklist, curl checks, browser play, the bug hunt and the fixes | Sonnet | medium |
+| GET | `/api/health` | `200 {"ok":true,"product":"Neon Breaker","levels":5}` | |
+| GET | `/api/levels` | `200 {"levels":[LevelDef x5]}` | |
+| GET | `/api/achievements` | `200 {"achievements":[Achievement x5]}` | |
+| GET | `/api/scores?limit=10` | `200 {"scores":[ScoreRow ...]}` | hatalı limit için `400 {"ok":false,"error":"<Turkish>"}` |
+| POST | `/api/scores` | `201 {"ok":true,"id":N,"rank":N,"scores":[ScoreRow x10]}` | `400 {"ok":false,"error":"<Turkish>"}` |
 
-Leads were free to spawn a worker or two of their own (Sonnet, low or medium effort). The
-orchestrator wrote no game code: it published the contract, integrated, judged and reported.
+`GET /api/scores` sıralaması `score DESC, created_at ASC`, varsayılan limit 10, en fazla 50.
+`rank`, yeni satırın tüm tablodaki 1'den başlayan sırasıdır.
 
-## 3. THE CONTRACT (published before anyone wrote a line)
+### 2.4 Veri şekilleri
 
-Parallel work only fits because this was fixed up front. Both leads were handed this text.
+```jsonc
+// ScoreRow
+{ "id": 7, "name": "NOVA", "score": 5200, "level": 4, "created_at": "2026-09-02T09:14:00.000Z" }
 
-### 3.1 File list and ownership
+// RoundResult, the POST /api/scores body
+{ "name": "NOVA", "score": 5200, "level": 4 }
 
-```
-showcase/neon-breaker/
-  package.json     orchestrator (fixed by the contract)   "type":"module", start = node server.js
-  server.js        Backend Lead
-  public/index.html  Frontend Lead
-  public/style.css   Frontend Lead
-  public/app.js      Frontend Lead
-  data.sqlite      created and seeded by server.js on first start; gitignored
-  README.md        orchestrator
-  BUILD-LOG.md     orchestrator
-  screenshots/     orchestrator
-```
+// Achievement
+{ "id": "ilk-bolum", "title": "Ilk Bolum", "description": "Bir bolumu temizle" }
 
-No lead touches a file it does not own. Node 24, Express from npm, built-in `node:sqlite`
-(`import { DatabaseSync } from 'node:sqlite'`). No bundler, no framework, no game engine, no
-audio files. UI text in Turkish; code, comments and docs in English.
-
-### 3.2 Port
-
-```js
-const PORT = Number(process.env.PORT) || 3000;
-```
-
-`node server.js` serves http://localhost:3000. `PORT=3001 node server.js` overrides it.
-
-### 3.3 API routes and JSON shapes
-
-All responses are JSON and all carry `ok`.
-
-`GET /api/health`
-
-```json
-{ "ok": true, "name": "Neon Breaker", "levels": 5, "scores": 12 }
-```
-
-`GET /api/levels`
-
-```json
-{ "ok": true, "levels": [ /* LevelDef, five of them, index 1..5 */ ] }
-```
-
-`GET /api/scores?limit=10` (limit clamped to 1..50, default 10)
-
-```json
-{ "ok": true, "scores": [
-  { "id": 7, "name": "ZEYNEP", "score": 9120, "level": 4, "created_at": "2026-08-30T18:22:11.000Z" }
-] }
-```
-
-`POST /api/scores`, body = a RoundResult, success 201:
-
-```json
-{ "ok": true,
-  "entry": { "id": 13, "name": "AYSE", "score": 8450, "level": 3, "created_at": "..." },
-  "rank": 2,
-  "top": [ /* the new top 10, same entry shape */ ] }
-```
-
-`POST /api/scores` failure 400:
-
-```json
-{ "ok": false, "error": "Isim 1 ile 12 karakter arasinda olmali." }
-```
-
-(the real message carries proper Turkish characters). Unknown `/api/*` route: 404
-`{ "ok": false, "error": "..." }`.
-
-### 3.4 Shape of a level definition (LevelDef)
-
-```json
+// LevelDef
 {
-  "index": 1,
+  "id": 1,
   "name": "Baslangic",
-  "palette": { "bg": "#070312", "grid": "#1b1140",
-               "brick": ["#ff2d95", "#00e6ff", "#7cff5a", "#ffd23f"],
-               "accent": "#00e6ff" },
-  "ballSpeed": 5.0,
-  "paddleWidth": 120,
+  "speed": 1.0,                     // ball speed multiplier for this level
   "rows": 6,
-  "cols": 11,
-  "grid": ["...........", "..nnnnnnn..", "..ntnnntn..", "...........", "...........", "..........."]
+  "cols": 10,
+  "palette": { "bg": "#070713", "accent": "#00f0ff", "bricks": ["#00f0ff", "#ff2ea6", "#7c5cff"] },
+  "grid": [[1,1,1,1,1,1,1,1,1,1], /* rows x cols, 0 empty, 1 normal, 2 two-hit, 3 unbreakable */ ]
 }
 ```
 
-`grid` is exactly `rows` strings of exactly `cols` characters.
-`.` empty, `n` normal (one hit), `t` two-hit, `x` unbreakable.
-`ballSpeed` is the level's base ball speed in pixels per frame at 60fps on the 880x620 logical
-play field. The server owns the five levels and serves them at `/api/levels`; the client keeps a
-tiny generated fallback so a failed fetch never blanks the screen.
+### 2.5 POST /api/scores için sunucu tarafı doğrulama
 
-### 3.5 Shape of a round result (RoundResult, the POST body)
+- `name`: baştan sona boşluklar kırpılmış, 1 ila 12 karakter; yalnızca harf (Türkçe dahil), rakam, boşluk, `_` ve `-`.
+- `score`: tam sayı, 0 ila 999999.
+- `level`: tam sayı, 1 ila 5.
+- Her ihlal HTTP 400 ve Türkçe bir mesaj döndürür. Hiçbir satır yazılmaz.
 
-```json
-{ "name": "AYSE", "score": 8450, "level": 3 }
+### 2.6 Frontend sözleşmesi
+
+- Frontend açılışta `GET /api/levels` çağırır ve aynı şekle sahip, gömülü bir yedek dizi tutar,
+  böylece istek başarısız olsa bile oyun yine de çalışır. Yedek dizi sunucudakinin birebir kopyası
+  değil: aynı beş bölüm sayısını ve aynı alan adlarını taşır, desenleri ve adları farklıdır.
+- localStorage anahtarları: `nb.player` (metin), `nb.settings`
+  (`{"sound":true,"difficulty":"orta","theme":"nebula","paddle":"orta"}`),
+  `nb.progress` (`{"unlocked":1,"achievements":[]}`).
+- Tema, `<html>` üzerinde `data-theme` olarak uygulanır; `nebula`, `asit` veya `magma`.
+- QA ile ekran görüntüsü aracının uygulamayı sürebilmesi için sabit DOM kimlikleri:
+  `#screen-start`, `#screen-game`, `#screen-scores`, `#screen-settings`, `#screen-levels`,
+  `#nav-play`, `#nav-scores`, `#nav-settings`, `#game-canvas`, `#profile-chip`, `#player-name`,
+  `#pause-menu`. Etkin ekranın kimliği `document.body.dataset.screen` üzerinde yansıtılır.
+- Kullanıcının gördüğü bütün metinler Türkçe. Kod ve yorumlar İngilizce; iki markdown dosyası
+  Türkçe.
+
+## 3. Gerçekten kurulan takım
+
+İstem, bir Claude Code oturumunu ORKESTRATÖR yapar ve o oturum uygulamayı yazmaz. Sözleşmeyi
+yayımlar, liderleri gerçek ve ayrı ajan süreçleri olarak başlatır, geri geleni birleştirir,
+sözleşmeye göre yargılar ve en son QA'yı çalıştırır.
+
+| Rol | Model | Efor | Neyin sahibiydi |
+|---|---|---|---|
+| Orkestratör | Fable 5.1 | high | Sözleşme, görevlendirmeler, entegrasyon, görsel inceleme, `README.md` ve bu dosya |
+| Backend Lideri | Sonnet | medium | `package.json`, `.gitignore`, `server.js`, şema, tohum verisi, skor tablosu API'si ve doğrulaması, beş bölüm, beş başarım |
+| Frontend Lideri | Sonnet | medium | `public/index.html`, `public/style.css`, `public/app.js`: kabuk, canvas oyun döngüsü, fizik, güçlendirmeler, parçacıklar, ses, HUD |
+| QA Lideri | Sonnet | medium | Kabul kontrol listesinin gerçek kontrollere dönüşü, saldırı matrisi ve bozuk olanın düzeltilmesi |
+| Frontend işçileri | Sonnet | low ila medium | Orkestratörün yapılan işi inceledikten sonra istediği üç hedefli düzeltme turu |
+
+Backend Lideri ile Frontend Lideri AYNI ANDA çalıştı. Bu ancak 2. bölümdeki sözleşme sayesinde
+mümkün: hiçbiri diğerine soru sormak zorunda kalmadı ve hiçbiri ötekini bozacak bir karar
+alamazdı. Backend Lideri kendi portunda, 3005'te, önce bitirdi; Frontend Lideri 3006'da çalıştı;
+QA 3007'de; orkestratör 3001'de doğruladı. 3000 portunu kimse kullanmadı, bu yüzden hiçbir şey
+çakışmadı.
+
+Dürüstlük notu: Frontend Lideri kendi altına işçi ajan açmamayı SEÇTİ. Raporundan alıntıyla
+gerekçesi: DOM kimlikleri, canvas'ın canlı okuduğu CSS özel değişkenleri ve ayarların bağlantıları
+birbirine sıkı sıkıya geçmiş durumda, dolayısıyla tek bir sözleşme üzerinde iki yazar birbirinden
+uzaklaşırdı. Bu doğru bir karardı ve burada süslenmeden, olduğu gibi kayda geçiyor.
+
+## 4. QA gerçekte ne çalıştırdı
+
+QA Lideri gerçek bir tarayıcıyı Chrome DevTools Protocol üzerinden sürdü (Playwright'ın tarayıcısı
+bu kapsayıcıda açılamıyordu: Chromium kum havuzu yok), oyun durumunu okumak için sayfa içinde
+JavaScript çalıştırdı, gerçek klavye ve dokunma olayları gönderdi ve API'ye curl ile gitti.
+
+| # | Kontrol | Sonuç | Kanıt |
+|---|---|---|---|
+| 1 | Temiz açılış, üç ekran, sessiz konsol | geçti | Yüklemede konsol mesaj dizisi boştu; sunucu günlüğünde yalnızca açılış satırı vardı |
+| 2 | 1. bölüm temizleniyor, 2. bölüm yükleniyor ve kilidi açılıyor, bir bildirim çıkıyor | geçti | Gerçek kod yolu son tuğlaya kadar sürüldü: `unlocked` 1'den 2'ye çıktı, `ilk-bolum` ve `kayipsiz` verildi, 1. bölümün 60 tuğlasına karşılık 30 tuğlalı 2. bölüm "Kafes" yüklendi |
+| 3 | Duraklatma topu donduruyor, devam 3-2-1 sayıyor, top içinden geçip kaçmıyor | geçti | Duraklatılmışken bir saniye arayla iki kez okunan top konumu birebir aynıydı; saniyede 2000 ila 9700 piksel hızla 1500 fizik adımı, sol, sağ ve üst duvarları sıfır kez geçti |
+| 4 | Bir güçlendirme yakalanıyor, çipi eriyor ve sıfırda duruyor | geçti | Yakalamada raket genişliği 96'dan 144'e, 14 saniyelik etkinin ardından tam olarak 96'ya döndü. Yavaş top için okunan 260 ve 156 değerleri `currentBallSpeed()` fonksiyonundan geliyordu, topun kendisinden değil; doğrulama turu bunun bir yanlış geçiş olduğunu buldu, bkz. 5. bölüm madde 7 |
+| 5 | Ayarlar oyunu gerçekten değiştiriyor ve yenilemeyi atlatıyor | geçti | Tema değişimi `--bg` değerini sayfa yenilenmeden `#070713`'ten `#06120a`'ya çevirdi; kolayda 221'e karşılık zorda 325 top hızı; yenilemeden sonra dört ayar da aynıydı |
+| 6 | API doğrulaması, kalıcılık ve telefonda sürükleme | geçti | Aşağıdaki saldırı matrisine bakın; 390px'te gerçek bir dokunma dizisi raketi x=134'ten x=261'e taşıdı |
+
+`POST /api/scores` üzerindeki saldırı matrisi; hepsi HTTP 400 ve Türkçe bir mesajla reddedildi,
+satır sayısı öncesi ve sonrasında değişmedi: 5000 karakterlik bir isim, yalnızca boşluklardan
+oluşan bir isim, içinde `<script>` geçen bir isim, içinde `<img onerror=...>` geçen bir isim,
+metin olarak gönderilen bir skor, `1e999`, `1.5`, negatif bir skor, bölüm 0, bölüm 99, null bir
+gövde, dizi bir gövde, eksik content-type ve 20KB'ı aşan bir gövde. Frontend, kayıtlı her ismi bir
+`textContent` kaçışından geçirerek basar, yani skor tablosundan gelen depolanmış XSS yolu yok.
+
+## 5. Bulunan ve düzeltilen hatalar
+
+İlk birleştirmenin ardından altı kusur bulundu, teslim sonrası bağımsız doğrulama turunda üç
+kusur daha çıktı. İkisi QA'dan, dördü bitmiş ekranları inceleyen
+orkestratörden geldi; otomatik kontrol listesinin ardından bir de insan gözünün geçmesinin sebebi
+tam olarak bu.
+
+1. **Türkçenin harfleri olmadan yazılması.** Kullanıcının gördüğü bütün metinler harfleri
+   soyulmuş ASCII olarak çıkmıştı: "Karolari kir, kombonu buyut", "BOLUM SEC", "Baslangic", "Isim 1
+   ile 12 karakter arasinda olmali." Türkçe okuyan biri bunu bir kısayol olarak değil, bozukluk
+   olarak görür. `index.html`, `app.js` ve `server.js` içindeki kullanıcıya görünen metinler
+   taranıp düzgün Türkçeye çevrilerek düzeltildi; başarım kimlikleri, güçlendirme kimlikleri ve
+   ayar değeri anahtarları ise ASCII kaldı, çünkü frontend onlarla eşleşiyor.
+2. **Masaüstü düzeninin alt yüzde 45'ini kaplayan ölü bir alan.** 1440x900'de başlangıç ekranının
+   içeriği y=460 civarında bitiyor, altındaki her yer boş ve neredeyse simsiyah kalıyordu. Kök
+   sebep: tam yükseklikte bir esnek sütunun olmayışı ve yalnızca telefondaki sekme çubuğu için
+   düşünülmüş, koşulsuz uygulanan 90px'lik alt boşluk. Gövde tam yükseklikte bir esnek sütun
+   yapılarak, etkin ekranın bu alanı doldurmasına izin verilerek ve başlangıç, skorlar ile ayarlar
+   ekranları bir grup olarak ortalanarak düzeltildi.
+3. **Uygulama her yüklemede içeri sönümleniyordu ve ekran görüntüleri onu soluk yakalıyordu.** Kök
+   sebep: `animation: fade-in 0.2s ease` kuralı `.screen.active` üzerindeydi, yani ilk boyamada
+   tetikleniyordu. İlk düzeltme denemesi kuralı `body.booted .screen.active` ile daraltıp sınıfı
+   açılıştan bir kare sonra ekledi; bu işi daha da kötüleştirdi, çünkü sınıfın eklenmesi kuralı
+   zaten etkin olan ekranla eşleştirmeye başlattı ve animasyon yine tetiklendi. Doğru düzeltme,
+   GEÇİLEN ekrana takılan geçici bir sınıf: `.screen.active.screen-enter`, ekran değiştiricinin
+   içinde yalnızca açılıştan sonra ekleniyor ve `animationend` olayında kaldırılıyor. İki yönde de
+   doğrulandı: ilk boyama artık net, gerçek bir gezinme ise hala sönümleniyor.
+4. **Skor tablosu skorları göstermiyordu.** Skor tablosu ekranındaki on satır bir sıra, bir isim,
+   bir bölüm ve bir tarih taşıyordu, skor ise hiçbir yerde yoktu: `row.score` basitçe hiç
+   basılmamıştı. Bu, otomatik kontrol listesinden geçti çünkü API doğru JSON'ı döndürüyordu; hatayı
+   yalnızca ekrana bakmak yakaladı. Skoru her satırın görsel çıpası olarak basarak düzeltildi;
+   `Intl.NumberFormat('tr-TR')` ile biçimlendirildiği için 8200, 8.200 olarak okunuyor; sayılar
+   birbirine göre sağa dayalı beş sütunluk bir ızgarada duruyor ve 400px altında dört sütuna
+   iniyor, yani skor korunuyor, düşen şey tarih oluyor.
+5. **Masaüstündeki oyun alanı, siyah bir denizin ortasında dar ve dikey bir şeritti.** 1440px'lik
+   bir pencerede yaklaşık 500px'lik bir canvas, iki yanında kabaca 470px'lik neredeyse simsiyah
+   boşluk ve alanın yalnızca üst beşte birini dolduran bir tuğla duvarı. Geniş ekranlarda alana
+   16:10 yatay bir en boy oranı verilerek, telefonlarda dikey alan korunarak ve tuğla bloğu sabit
+   bir piksel sınırı yerine alanın boyutundan ölçeklenerek düzeltildi; artık her iki boyutta da
+   alan yüksekliğinin yaklaşık yüzde 40'ını kaplıyor. Top hızı, raket ve güçlendirme düşme hızının
+   hepsi alan koordinat uzayında yaşadığı için fizik bu değişiklikten hiç etkilenmeden çıktı.
+6. **Oyun, oyuncu çoktan oynarken ona başlamak için dokunmasını söylüyordu.** Canvas'ın altındaki
+   "Dokun ve sürükleyerek raketi hareket ettir. Başlatmak için dokun." ipucu hiç kaybolmuyordu.
+   Fırlatma kısmı yalnızca top raketin üzerinde beklerken, dokunma kısmı yalnızca kaba bir işaretçi
+   varken görünecek ve öğe boş yer ayırmak yerine kapanacak biçimde düzeltildi.
+
+Yol boyunca düzeltilen bir şey daha var; Frontend Lideri işi teslim etmeden önce kendi çalışmasını
+gözden geçirirken buldu: çoklu top güçlendirmesi geri sayımı sıfıra indiğinde eski haline
+dönmüyordu, bu da sözleşmenin "her süreli etki gözle görülür biçimde durmalı" kuralını çiğniyordu.
+
+Aşağıdaki üç madde, teslimden sonra çalışan bağımsız doğrulama turunda bulundu ve orada düzeltildi.
+
+7. **Yavaş top güçlendirmesi hiçbir şey yapmıyordu.** Top hızı çarpışmalar arasında topun kendi
+   `vx`/`vy` değerlerinde taşınıyor, `currentBallSpeed()` ise yalnızca fırlatma ve top sıfırlama
+   anında okunuyordu. Uçmakta olan bir topa "yavaş top" yakalatmak hızını hiç değiştirmiyordu:
+   HUD'daki çip 10 saniye boyunca geri sayıyor, top ise saniyede tam 260 pikselde kalıyordu.
+   Ölçüm: yakalamadan 2500 ms sonra 260.0, etki bittikten sonra yine 260.0. QA'nın geçti raporu
+   topun hızını değil `currentBallSpeed()` dönüşünü okuduğu için bunu kaçırmıştı. Etki başlarken
+   ve biterken bütün topların hız vektörünü yeni hedef hıza ölçekleyen bir `retargetBallSpeed()`
+   yardımcısıyla düzeltildi. Düzeltme sonrası ölçüm: 260 -> 156 -> 261.5.
+8. **12 karakterden uzun bir oyuncu adı skoru sessizce çöpe atıyordu.** İsmi değiştirme kutusu
+   `maxlength="16"` taşıyor ve `slice(0, 16)` uyguluyordu, sunucu ise ismi 1 ila 12 karakterle ve
+   belirli bir karakter kümesiyle sınırlıyor. 16 karakterlik ya da içinde nokta, aksanlı harf veya
+   emoji olan bir isimle oynayan biri turu bitiriyor, `POST /api/scores` HTTP 400 dönüyor,
+   `postScore` hatayı yutuyor, konsola bir 400 hatası düşüyor ve skor tabloya hiç girmiyordu.
+   `maxlength` 12'ye çekilerek ve sunucunun kuralını birebir yansıtan bir `sanitizePlayerName()`
+   ile düzeltildi; artık kullanıcı arayüzünden çıkan hiçbir isim sunucuda reddedilemiyor.
+9. **Güç Toplayıcı başarımı gösterdiği açıklamayı yapmıyordu.** Ekranda "Bir turda dört farklı
+   güçlendirme türünü topla" yazıyor, kod ise oturumlar arasında saklanan toplam yakalama sayısını
+   sayıp beşte veriyordu. Tur başına yakalanan türler `game.powerupTypesThisRound` içinde tutulacak
+   ve başarım dört türün hepsi toplandığında verilecek biçimde düzeltildi.
+
+## 6. Temiz kontrol
+
+`README.md` içindeki iki komutun herkese yeten tek şey olduğunu kanıtlamak için, tamamen boş bir
+`node_modules` üzerinden, en sonda orkestratör tarafından çalıştırıldı.
+
+```
+rm -rf node_modules
+npm install --no-audit --no-fund      ->  added 68 packages in 400ms
+PORT=3001 node server.js              ->  Neon Breaker running at http://localhost:3001,
+                                          LAN: http://172.18.0.9:3001
+curl -s -o /dev/null -w '%{http_code}' localhost:3001/         ->  200
+curl -s localhost:3001/api/health                              ->  {"ok":true,"product":"Neon Breaker","levels":5}
+curl -s localhost:3001/api/levels                              ->  valid JSON, 5 levels
+curl -s localhost:3001/api/achievements                        ->  valid JSON, 5 achievements
+curl -s localhost:3001/api/scores                              ->  valid JSON, the seeded top 10
+curl -s -X POST localhost:3001/api/scores -d '{"name":"","score":-5}'
+                                                               ->  400 {"ok":false,"error":"İsim 1 ile 12 karakter arasında olmalı."}
+kill <listening pid>                                           ->  port 3001 free
+node_modules                                                   ->  left installed, 65 entries
 ```
 
-Server-side validation, all messages Turkish:
+Sunucu `0.0.0.0` adresine bağlanır ve LAN adresini yazdırır, böylece aynı wifi'daki bir telefon
+uygulamayı açabilir. Kodda varsayılan port 3000 olarak kalıyor; burada 3001 kullanılmasının tek
+sebebi, aynı anda başka portlarda başka uygulamaların yapılıyor olmasıydı.
 
-- `name`: string, trimmed, 1 to 12 characters after trimming, control characters and angle
-  brackets stripped, uppercased. Anything else: 400.
-- `score`: an integer, 0 to 10000000. Not a number, a float, negative or absurd: 400.
-- `level`: an integer, 1 to 5. Missing defaults to 1; out of range: 400.
-- Body larger than 4KB or not JSON: 400.
+## 7. Dürüst notlar
 
-### 3.6 Logical play field
-
-The canvas is 880x620 logical pixels and is scaled with CSS to fit the viewport, down to a 390px
-wide phone. All physics runs in logical pixels so the game behaves identically at every size.
-
-### 3.7 Test hooks the client must expose (so QA can verify, not guess)
-
-The game exposes a small debug surface on `window.NB`, and honours two URL query parameters. This
-is what turns the acceptance checklist into real checks instead of eyeballing.
-
-```
-window.NB.state            live game state: phase, level, lives, score, combo, balls[], bricks[],
-                           powerups[], activePowerUps[] with their remaining seconds, muted
-window.NB.start()          leave the menu and start a run
-window.NB.goToLevel(n)     jump straight to level n (1..5)
-window.NB.clearBricks()    break every breakable brick of the current level at once
-window.NB.dropPowerUp(t)   spawn a power-up of type t at the ball ('multi'|'wide'|'slow'|'life')
-window.NB.togglePause()    same effect as Space
-window.NB.stepPhysics(n)   advance the simulation n fixed steps with no rendering (headless test)
-
-?autoplay=1                skip the menu, start level 1, and let an autopilot paddle track the
-                           ball, so a screenshot or a headless run shows a live play frame
-?level=N                   start on level N (implies autoplay)
-```
-
-## 4. How the team actually ran
-
-The orchestrator published the contract above, scaffolded `package.json` and installed Express
-once (so three agents could not race on the same `node_modules`), then spawned the leads.
-
-- **Round 1, in parallel.** Backend Lead wrote `server.js` (320 lines). Frontend Lead wrote
-  `public/index.html`, `public/style.css` and `public/app.js` (1105 lines). Their file sets do
-  not overlap, so neither ever blocked on the other. The Frontend Lead could start before
-  `server.js` existed because the contract fixed the level shape and required a local fallback.
-- **Integration review.** The orchestrator booted the result on port 3001, hit the API with curl,
-  and took three headless screenshots (desktop menu, `?autoplay=1` mid-play, 390px phone). Four
-  defects came out of that review, listed in section 5.
-- **Round 2, in parallel.** Each lead got its own defect list, still on disjoint files: Backend
-  Lead on `server.js` only, Frontend Lead on `public/` only.
-- **QA Lead, last and alone.** With nobody else editing, QA could fix anything. It turned the
-  six acceptance items into real checks driven through the `window.NB` hooks, ran the three
-  deliberate bug hunts, and spawned a worker of its own for the API abuse matrix.
-- **Final judgement.** The orchestrator re-verified every claim independently rather than
-  trusting the reports, then wrote the docs and ran the clean check.
-
-## 5. Bugs found and fixed
-
-### From the orchestrator's integration review (round 2)
-
-1. **Every Turkish string was ASCII-folded.** `Baslangic`, `Basla`, `Siralama`,
-   `Isim 1 ile 12 karakter arasinda olmali.` and roughly sixty others shipped without Turkish
-   characters, in both `server.js` and `public/`. For a Turkish-speaking room reading a projector
-   this is a product defect, not a nitpick. Fixed in both files; the level names now come back
-   from the API as `['Başlangıç', 'Piramit', 'Kale', 'Kalp Atışı', 'Son Kale']`, and the seeded
-   demo names are correct too (`İREM`, `DENİZ`, `AYŞE`, `BARIŞ`).
-2. **`?autoplay=1` never launched the ball.** The mid-play screenshot showed the ball parked on
-   the paddle with a score of 0, because the launch hung off a timer that a short headless run
-   never reached. Fixed with a synchronous warm-up that advances the simulation 200 physics ticks
-   before the first rendered frame, on start and on every level load. The frame now shows the
-   ball in flight, broken bricks and a non-zero score.
-3. **The AudioContext was constructed on page load**, so every fresh load logged
-   "The AudioContext was not allowed to start...". It is now created lazily on the first real
-   user gesture (the Başla click, mousedown, touchstart or Space) and never in autoplay mode.
-   A fresh load produces no console output at all.
-4. **The play field looked flat and empty on a projector.** Bricks were plain rectangles, the
-   menu sat on an empty black canvas, and level 1's 21 bricks left most of the field bare. Fixed:
-   rounded bricks with a top bevel and a neon `shadowBlur`, cracked-and-dimmed two-hit bricks,
-   metal-gradient unbreakable bricks, an ambient backdrop behind the menu (grid, drifting glow,
-   idle bricks, a slow demo ball), a brighter ball core with a 14 frame trail, a gradient paddle,
-   a proper arcade HUD, and a taller brick field so the play area reads as composed.
-
-### From the QA Lead
-
-5. **The play HUD was visible behind the start menu** (three life icons, a score of 0 and the SES
-   button), because `setScreen()` never managed HUD visibility. `#hud` now starts hidden and
-   `setScreen()` shows it only during play, pause and the level transition.
-
-### The three deliberate bug hunts
-
-- **Tunneling: not found.** `sweptCircleRect` resolves the earliest contact along the frame's
-  travel segment, and `substeps = ceil(travel / (r * 0.5))` keeps every sub-step to at most half
-  a ball radius. QA ran 5000 steps at level 5 speed and again at roughly 5.7 times that speed
-  with zero boundary or brick skips. The orchestrator re-ran 6000 steps on level 5 and logged
-  0 escapes and 0 bricks broken while the ball was nowhere near them. Note that the engine
-  renormalises the ball speed every frame, so an over-speed ball cannot be injected from outside:
-  the speed is bounded by design, which is itself part of why tunneling cannot happen.
-- **Stuck ball: not found, and the guard was proven to fire.** QA forced a near-horizontal loop
-  and watched the nudge lift `vy` from 0.096 to 1.78 on frame 40, and a near-vertical loop lift
-  `vx` from 0.096 to 1.38 on frame 60. The mechanism works rather than merely existing.
-- **Leaderboard input abuse: not found.** A 20 case matrix (empty body, malformed body, a 100KB
-  body, `name` as a number, array, object, null, 200 characters, only spaces, `<script>`, control
-  characters; `score` as a string, float, NaN, Infinity, negative, 1e30; `level` 0 and 99)
-  returned 400 with a Turkish JSON message every time. Unknown extra fields are ignored rather
-  than rejected: a body that is otherwise valid but also carries `__proto__` is accepted as a
-  normal 201 and pollutes nothing, because only `name`, `score` and `level` are ever read. No
-  500, no HTML, no stack trace, and nothing dirty reached the table.
-
-### One fix the orchestrator made itself
-
-6. **`NB.state` did not expose the paddle**, so the documented debug hook could not answer
-   "did the Geniş Raket power-up actually widen the paddle". Since section 3.7 of the contract is
-   the orchestrator's own surface, it added the one missing line
-   (`paddle: { x, y: PADDLE_Y, w, h }`) rather than send the file back. That is the only app-code
-   line the orchestrator wrote. With it, the power-up check became a measurement: 130 to 195 with
-   the chip at 6.1 seconds, back to 130 the moment it expired.
-
-## 6. The tests QA ran
-
-Driven through the `window.NB` hooks in a headless Chromium and with curl against port 3021:
-
-| # | check | how it was proven |
-|---|---|---|
-| 1 | clean start, no console errors | headless console log array was empty; `window.NB` present |
-| 2 | level 1 clears, level 2 differs, Space freezes the ball | `NB.clearBricks()` moved `state.level` 1 to 2 with a different grid; the ball's `x, y, vx, vy` were byte-identical across a 1.5s pause and moved again after the 3-2-1 resume |
-| 3 | a power-up is caught, counts down, and stops | Geniş Raket: paddle 130, 195, 130; Yavaş Top: measured speed ratio exactly 0.6 while active, `activePowerUps` empty after |
-| 4 | no tunneling, no escape | 5000 steps at level 5 speed and at roughly 5.7 times it: 0 out-of-field samples, 0 bricks broken with the ball more than 30px away |
-| 5 | bad POST is 400 in Turkish; the top 10 survives a restart | `{"ok":false,"error":"İsim 1 ile 12 karakter arasında olmalı."}` with HTTP 400; the server was really killed and restarted and the posted entry was still ranked first |
-| 6 | touch drag and tap at 390px | a `touchstart` to `touchmove` drag moved the paddle from 375 to 627 px and the same touch set `launched: true` |
-
-The orchestrator then re-ran items 1 to 5 independently over the DevTools protocol and with curl,
-plus a wider validation sweep (empty name, negative score, `<script>` name, level 99, a non-JSON
-body, an unknown `/api` route). Every result matched.
-
-## 7. Definition of done
-
-- `npm install` then `node server.js` serves the game on http://localhost:3000. Confirmed.
-- All six acceptance items pass. Confirmed twice, by QA and by the orchestrator.
-- `README.md` carries the product name, the two commands, the controls, the features, the team
-  and the Verified checklist. `BUILD-LOG.md` is this file.
-- Clean-room check: `node_modules` deleted, `npm install --no-audit --no-fund` from scratch,
-  server started on port 3001, `/` answered HTTP 200 and `/api/health` answered JSON, then the
-  process group was killed and the port confirmed free.
-
-Run it with:
-
-```bash
-npm install
-node server.js
-```
+- Frontend Lideri Playwright tarayıcı aracını kullanamadı: Chromium bu kapsayıcıda kum havuzu
+  olmadan başlayamıyor. Takım bunu, Node 24'ün yerleşik `WebSocket` desteği üzerine kurulmuş, hiç
+  npm paketi kullanmayan küçük bir Chrome DevTools Protocol sürücüsüyle aştı; QA daha sonra
+  uygulamada tıklamak, oyun durumunu okumak, gerçek klavye ve dokunma olayları göndermek ve fizik
+  simülasyonlarını çalıştırmak için bunu kullandı.
+- İlk QA turu yarısında makine tarafından sonlandırıldı ve raporunu kaybetti. Tekrar turuna
+  bulgularını madde madde, aşama aşama diske yazması söylendi; böylece ikinci bir kesinti kanıtı
+  silemeyecekti. Tur temiz bitti.
+- `GET /api/levels` her bölüm için bir `palette` alanı döndürür, ama tuğlaları, raketi ve arka
+  planı çizen renkler etkin temanın CSS değişkenlerinden okunur. Bunun sebebi kabul listesindeki
+  5. madde: tema değişimi oyunu anında yeniden boyamak zorunda. Yani beş bölümün her birinin kendi
+  deseni ve kendi hızı var, ama kendi paleti yok; palet temadan geliyor. Sözleşmedeki alan API
+  şeklinin bir parçası olarak duruyor.
+- Oyun alanı sabit bir en boy oranı korur: masaüstünde 16:10, telefonda 3:4. Çok uzun bir telefon
+  ekranında bu, alanın altında bir arka plan şeridi bırakır. Bu bir düzen hatası değil, sabit en
+  boy oranından gelen bir çerçeveleme ve hiç bozulmayan bir oyun alanı için bilinçli olarak yapılan
+  takas.

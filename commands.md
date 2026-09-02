@@ -1,64 +1,65 @@
-# Command card: what gets typed on stage, and the 15 worth knowing
+# Komut kartı: sahnede ne yazılıyor ve bilmeye değer 15 komut
 
-## Terminal basics (four is enough tonight)
-
-```bash
-pwd          # where am I
-ls           # what is in this folder
-cd <folder>  # step into a folder
-cd ..        # step one level up
-```
-
-## Claude Code lifecycle
+## Terminalin temelleri (bu akşam dördü yeter)
 
 ```bash
-claude               # start (current folder = the workspace)
-claude --continue    # pick up the last conversation where it left off
+pwd          # neredeyim
+ls           # bu klasörde ne var
+cd <folder>  # bir klasörün içine gir
+cd ..        # bir üst klasöre çık
 ```
 
-## The 15 slash commands, in three tiers
-
-### Tier 1 · must-know (you will use these tonight)
-
-```
-/help      # list every command
-/init      # have Claude write this project's CLAUDE.md for you
-/clear     # reset the conversation (context resets too!)
-/compact   # summarize the conversation to free context, work continues
-/model     # switch the model (fast vs heavy) and save it as default
-```
-
-### Tier 2 · good-to-know (first week)
-
-```
-/resume    # return to an earlier conversation
-/memory    # edit CLAUDE.md files from inside the session
-/rewind    # roll code AND conversation back to a checkpoint (the undo)
-/plugin    # marketplaces: browse, install, manage
-/mcp       # see and manage connected MCP servers
-```
-
-### Tier 3 · occasional (nice to have in the pocket)
-
-```
-/context      # visualize what is filling the context window
-/usage        # what this is costing / plan limits
-/permissions  # what Claude may do without asking
-/doctor       # setup checkup: diagnoses and fixes install issues
-/export       # export the conversation as text
-```
-
-Also: `/<skill-name>` runs any installed skill, and `Shift+Tab` cycles permission modes.
-
-## Git in two lines (the repo logic shown on stage)
+## Claude Code'un yaşam döngüsü
 
 ```bash
-git clone <url>   # download the project to your machine
-git pull          # fetch updates later
+claude               # başlat (içinde olduğun klasör = çalışma alanı)
+claude --continue    # son sohbete kaldığı yerden devam et
 ```
 
-## The one to remember
+## Üç kademede 15 slash komutu
 
-Context is the fuel gauge: when it runs out and resets, the assistant remembers only what is
-written in FILES (`CLAUDE.md`, your notes). Write things down; sessions are mortal, files
-are not.
+### 1. kademe · mutlaka bilinmesi gerekenler (bu akşam bunları kullanacaksınız)
+
+```
+/help      # bütün komutların listesi
+/init      # bu projenin CLAUDE.md dosyasını Claude senin için yazsın
+/clear     # sohbeti sıfırlar (context de sıfırlanır!)
+/compact   # sohbeti özetleyip yer açar, iş kaldığı yerden devam eder
+/model     # modeli değiştir (hızlı mı, ağır mı) ve varsayılan olarak kaydet
+```
+
+### 2. kademe · bilinse iyi olur (ilk hafta)
+
+```
+/resume    # daha önceki bir sohbete geri dön
+/memory    # CLAUDE.md dosyalarını oturumun içinden düzenle
+/rewind    # HEM dosyaları HEM sohbeti bir kontrol noktasına geri alır
+/plugin    # marketplace'ler: gez, kur, yönet
+/mcp       # bağlı MCP sunucularını gör ve yönet
+```
+
+### 3. kademe · arada bir (cepte dursun)
+
+```
+/context      # masanın ne kadarı dolu, neyin yer kapladığını gösterir
+/usage        # bu iş ne tutuyor, paketin sınırları nerede
+/permissions  # Claude neyi sormadan yapabilir
+/doctor       # kurulum kontrolü: sorunu bulur ve düzeltir
+/export       # sohbeti metin olarak dışarı aktar
+```
+
+Ayrıca: `/<skill-name>` kurulu herhangi bir skill'i çalıştırır, `Shift+Tab` ise izin
+modları arasında gezdirir.
+
+## İki satırda Git (sahnede gösterilen depo mantığı)
+
+```bash
+git clone <url>   # projeyi kendi bilgisayarına indir
+git pull          # sonrasında gelen güncellemeleri çek
+```
+
+## Aklınızda kalsın
+
+Context yakıt göstergesi gibidir: tükenip sıfırlandığında asistanın hatırladığı tek şey
+DOSYALARA yazılmış olanlardır (`CLAUDE.md`, kendi notlarınız). Yazın bir kenara; oturumlar
+fani, dosyalar kalıcı.

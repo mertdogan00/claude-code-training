@@ -1,87 +1,111 @@
-# Mega prompt · Satış Analitik Paneli (a sales dashboard, built by a team)
+# Mega prompt · Satış Analitik Paneli (bir takımın kurduğu satış panosu)
 
-One shot, fully autonomous, and Claude Code does not build it alone: it forms a team of
-sub-agents and runs them in parallel. Works in an empty folder, and picks up the repo CSV when
-there is one. Paste the block below AS-IS into a fresh Claude Code session.
-
----
-
-> **You are the ORCHESTRATOR.** Drive this job from start to finish WITHOUT stopping for my
-> confirmation at any point. First print a numbered plan (max 8 lines) so the room can follow
-> on screen, then execute it. This runs live in front of an audience: narrate every step.
->
-> STEP 1, PUBLISH THE CONTRACT before anyone writes a line: the file list, the port, the exact
-> API routes and the JSON shape each one returns. Print it on screen, then write it into
-> `BUILD-LOG.md`. Parallel work only fits together because this exists first.
->
-> STEP 2, FORM THE TEAM, FOR REAL. Use your Agent tool to spawn three LEAD sub-agents and run
-> them in parallel wherever their work is independent:
-> - **Backend Lead**: `server.js`, the SQLite schema, the CSV import or the row generator,
->   every aggregation endpoint, the insight engine.
-> - **Frontend Lead**: `public/index.html`, `public/style.css`, `public/app.js`, the KPI cards,
->   the charts, the filter bar, the product table.
-> - **QA Lead**: turns the acceptance checklist below into real checks, starts the server,
->   verifies every item in a browser or with curl, reports pass or fail per item, fixes fails.
-> A lead may spawn a worker or two for independent sub-tasks. You do NOT write the app
-> yourself: you integrate, resolve conflicts and run QA last.
->
-> THE JOB: build "Satış Analitik Paneli", a sales analytics dashboard that looks like a paid
-> product: KPI cards, charts, filters that drive every widget at once, and an insight panel the
-> server computes.
->
-> THE STACK, non-negotiable, no build step and no framework:
-> - ONE folder, created here, holding exactly: `package.json`, `server.js`, `public/`
->   (`index.html`, `style.css`, `app.js`), `data.sqlite`, `README.md`, `BUILD-LOG.md`.
-> - `package.json` carries `"type": "module"` and a `start` script running `node server.js`.
-> - `server.js`: Node 24, Express from npm, and the BUILT-IN `node:sqlite` module
->   (`import { DatabaseSync } from 'node:sqlite'`). Nothing native compiles on this machine.
-> - `public/` is plain HTML, CSS and JavaScript: no TypeScript, no bundler, no CSS framework.
->   Charts: Chart.js served from `node_modules` with `express.static`, or SVG drawn by hand.
-> - `data.sqlite` is created and seeded on FIRST START; deleting it resets the app.
-> - The only two commands anyone ever types: `npm install`, then `node server.js`, serving
->   http://localhost:3000. `PORT=3001 node server.js` must override the port.
-> - DATA: if `../data/sales-data.csv` or `data/sales-data.csv` exists, import it (columns
->   `date,product,category,qty,unit_price,city`); otherwise generate 120 realistic rows with
->   those same columns. The build must work from an empty folder AND inside this repo.
-> - All user-facing UI text in TURKISH; code, comments, `README.md` and `BUILD-LOG.md` in
->   English.
->
-> FEATURES, all required:
-> 1. Four KPI cards (ciro, satılan adet, sipariş sayısı, ortalama sepet), each with a percent
->    change against the previous period of the same length.
-> 2. Revenue timeline chart with a day / week / month granularity switch.
-> 3. Category share donut with percentage labels; clicking a slice applies that category filter.
-> 4. City bar chart sorted by revenue, with revenue and units both in the tooltip.
-> 5. Product table: sortable columns, an instant search box, revenue, units and share of total
->    per product.
-> 6. One filter bar (date range, category, city) driving EVERY widget from a single state, with
->    a visible "filtreleri temizle" reset.
-> 7. Insight panel: the SERVER computes 3 to 5 observations from the filtered data (best day,
->    standout category, biggest mover, one concrete suggested action), each carrying the number
->    behind it. The frontend only renders them.
-> 8. A premium dark look with one accent color, Turkish number formatting with ₺ on money, and
->    a layout that still reads at 390px phone width.
->
-> ACCEPTANCE CHECKLIST, the QA Lead verifies each ON SCREEN or with curl and reports pass/fail:
-> 1. `npm install` then `node server.js` start clean; http://localhost:3000 renders real data
->    with no console errors.
-> 2. `curl -s localhost:3000/api/kpis` returns non-zero revenue, units and orders.
-> 3. Setting the date range to the last 7 days changes the KPI cards, the timeline, the donut,
->    the city chart and the table at once, and the table total matches the revenue card.
-> 4. Switching the timeline to month granularity redraws it with fewer, wider points.
-> 5. `curl -s localhost:3000/api/insights` returns 3 to 5 insights, each carrying a number.
-> 6. At 390px width nothing overflows sideways and the widgets stack readably.
->
-> DEFINITION OF DONE: every checklist item green; `README.md` with the product name, the two
-> commands, the feature list and the team that built it; `BUILD-LOG.md` with the plan, the
-> team, the published contract, the tests QA ran and every bug found and fixed. Close by
-> printing the run command and a five-line summary of what each team member built.
+Tek atış, tam özerk, üstelik Claude Code bunu tek başına kurmuyor: alt-ajanlardan bir takım
+kurup hepsini paralel çalıştırıyor. Boş bir klasörde de çalışır, depodaki CSV varsa onu da
+alır. Aşağıdaki bloğu OLDUĞU GİBİ yeni bir Claude Code oturumuna yapıştır.
 
 ---
 
-**Stage note:** while the team works, ask the room: "three sub-agents are writing at the same
-time, so who decides that the frontend and the backend still fit together?" The answer is on
-screen: the contract the orchestrator published before anyone started typing. When it finishes,
-run `npm install`, then `node server.js`, and open http://localhost:3000. Take one change
-request from the audience and type it as a single sentence. Fallback if the build stalls:
-`cd showcase/data-dashboard` and `node server.js`.
+> **Sen ORKESTRATÖRSÜN.** Bu işi baştan sona, hiçbir noktada benim onayımı beklemeden yürüt.
+> Önce numaralı bir plan yaz (en fazla 8 satır) ki salon ekrandan takip edebilsin, sonra onu
+> uygula. Bu iş bir seyircinin önünde canlı akıyor: her adımı anlatarak ilerle.
+>
+> ADIM 1, KİMSE TEK SATIR YAZMADAN ÖNCE SÖZLEŞMEYİ YAYIMLA: dosya listesi, port, tam API
+> rotaları ve her birinin döndürdüğü JSON şekli. Bunu ekrana yaz, sonra `BUILD-LOG.md`
+> içine geçir. Paralel işin sonradan birbirine oturmasının tek sebebi bunun önceden var
+> olmasıdır.
+>
+> ADIM 2, TAKIMI GERÇEKTEN KUR. Agent aracınla üç LİDER alt-ajan aç ve işleri birbirinden
+> bağımsız olduğu her yerde onları paralel çalıştır:
+> - **Backend Lideri**: `server.js`, SQLite şeması, CSV içe aktarma ya da satır üreteci,
+>   bütün toplulaştırma uç noktaları, içgörü motoru.
+> - **Frontend Lideri**: `public/index.html`, `public/style.css`, `public/app.js`, ürün
+>   kabuğu, dört ekran, KPI kartları, grafikler ve filtre çubuğu.
+> - **QA Lideri**: aşağıdaki kabul kontrol listesini gerçek kontrollere çevirir, sunucuyu
+>   başlatır, her maddeyi tarayıcıda ya da curl ile doğrular, madde madde geçti/kaldı
+>   raporlar, kalanları düzeltir.
+> Bir lider, bağımsız alt görevler için bir iki işçi açabilir. Uygulamayı sen yazmıyorsun:
+> birleştiriyor, çakışmaları çözüyor ve en sonda QA'yı çalıştırıyorsun.
+>
+> İŞ: "Satış Analitik Paneli"ni kur; paralı bir ürün gibi duran bir satış analitiği panosu:
+> KPI kartları, grafikler, hepsini aynı anda süren filtreler ve sunucunun hesapladığı bir
+> içgörü paneli.
+>
+> ÜRÜN KABUĞU, pazarlık yok: bu şey demo gibi değil, yayınlanmış bir ürün gibi hissettirmeli.
+> Ürün adı ve profil rozeti olan bir üst bar; dört ekranlı bir kenar çubuğu; gerçekten bir
+> şeyleri değiştiren bir ayarlar ekranı; her yerde boş ve yükleniyor durumları; klavye ve
+> dokunmatik dostu; tek vurgu rengi olan uyumlu bir palet; Türkçe arayüz metni; 390px'te
+> okunur.
+>
+> YIĞIN, pazarlık yok, derleme adımı yok, framework yok:
+> - Burada oluşturulan TEK klasör, tam olarak şunları taşır: `package.json`, `server.js`,
+>   `public/` (`index.html`, `style.css`, `app.js`), `data.sqlite`, `README.md`,
+>   `BUILD-LOG.md`.
+> - `package.json` içinde `"type": "module"` ve `node server.js` çalıştıran bir `start`
+>   script'i olacak.
+> - `server.js`: Node 24, npm'den Express ve GÖMÜLÜ `node:sqlite` modülü
+>   (`import { DatabaseSync } from 'node:sqlite'`). Bu makinede hiçbir yerel paket derlenmez.
+> - `public/` düz HTML, CSS ve JavaScript: TypeScript yok, bundler yok, CSS framework'ü yok.
+>   Grafikler: `express.static` ile `node_modules` üzerinden servis edilen Chart.js, ya da
+>   elle çizilmiş SVG.
+> - `data.sqlite` İLK AÇILIŞTA oluşturulur ve doldurulur; silmek uygulamayı sıfırlar.
+> - Kimsenin yazacağı tek iki komut: `npm install`, sonra `node server.js`, adres
+>   http://localhost:3000. `PORT=3001 node server.js` portu ezebilmeli.
+> - VERİ: `../data/sales-data.csv` ya da `data/sales-data.csv` varsa onu içe aktar (sütunlar
+>   `date,product,category,qty,unit_price,city`); yoksa aynı sütunlarla 120 gerçekçi satır
+>   üret. Kurulum hem boş bir klasörde HEM de bu deponun içinde çalışmalı.
+> - Kullanıcının gördüğü bütün arayüz metni TÜRKÇE; `README.md` ve `BUILD-LOG.md` de TÜRKÇE
+>   yazılır; sadece kodun kendisi ve kod yorumları İngilizce kalır.
+>
+> ÖZELLİKLER, hepsi zorunlu:
+> 1. Kabuk: ürün adını, en iyi üç içgörüyü listeleyen bir bildirim zilini ve bir profil
+>    rozetini taşıyan üst bar; dört ekranlı bir kenar çubuğu (Genel bakış, Ürünler, Şehirler,
+>    Ayarlar); veri gelirken iskelet yükleyiciler, hiçbir şey eşleşmediğinde Türkçe bir boş
+>    durum.
+> 2. Genel bakış: dört KPI kartı (ciro, satılan adet, sipariş sayısı, ortalama sepet), her
+>    biri aynı uzunluktaki bir önceki döneme göre yüzde değişimiyle, artı hedef geçildiğinde
+>    rengi değişen aylık hedef ciro ilerleme çubuğu.
+> 3. Gün / hafta / ay kırılım anahtarı olan ciro zaman çizgisi grafiği.
+> 4. Yüzde etiketli kategori payı donut'ı; bir dilime tıklamak o kategori filtresini uygular.
+> 5. Ürünler: sıralanabilir sütunlar, anlık arama kutusu, ürün başına ciro, adet ve toplam
+>    içindeki pay. Şehirler: ciroya göre sıralı çubuk grafik, ipucu balonunda hem ciro hem
+>    adet.
+> 6. Tek bir durumdan HER ekranı süren tek bir filtre çubuğu (tarih aralığı, kategori, şehir),
+>    görünür bir "filtreleri temizle" sıfırlamasıyla.
+> 7. İçgörü paneli: filtrelenmiş veriden 3 ila 5 gözlemi SUNUCU hesaplar (en iyi gün, öne
+>    çıkan kategori, en çok değişen, önerilen bir aksiyon), her biri arkasındaki rakamla
+>    birlikte.
+> 8. Gerçekten bir şeyleri değiştiren, hepsi localStorage'da saklanan Ayarlar: tema (koyu /
+>    açık), para birimi (tek sabit kur tablosu üzerinden TL, USD, EUR; her para rakamına
+>    uygulanır) ve ilerleme çubuğunu besleyen aylık hedef ciro, artı veri setinin yerine
+>    geçen CSV içe aktarma.
+>
+> KABUL KONTROL LİSTESİ, QA Lideri her maddeyi EKRANDA ya da curl ile doğrular ve geçti/kaldı
+> raporlar:
+> 1. `npm install` ardından `node server.js` temiz açılıyor; http://localhost:3000 konsolda
+>    hata olmadan gerçek veriyi çiziyor ve kenar çubuğu dört ekrana da ulaşıyor.
+> 2. `curl -s localhost:3000/api/kpis` sıfırdan farklı ciro, adet ve sipariş döndürüyor.
+> 3. Tarih aralığını son 7 güne çekmek KPI kartlarını, zaman çizgisini, donut'ı, şehir
+>    grafiğini ve ürün tablosunu aynı anda değiştiriyor ve tablo toplamı ciro kartıyla
+>    tutuyor.
+> 4. Ayarlar'da temayı açık'a, para birimini USD'ye çevirmek bütün uygulamayı ve her para
+>    rakamını yeniden boyuyor, sayfa yenilenince ikisi de duruyor ve aylık hedef ciroyu
+>    yükseltmek ilerleme çubuğunu oynatıyor.
+> 5. `curl -s localhost:3000/api/insights` her biri bir rakam taşıyan 3 ila 5 içgörü
+>    döndürüyor.
+> 6. 390px genişlikte hiçbir şey yana taşmıyor, kenar çubuğu kapanıyor ve bileşenler alt alta
+>    diziliyor.
+>
+> BİTTİ TANIMI: kontrol listesinin her maddesi yeşil; ürün adını, iki komutu, özellikleri ve
+> takımı içeren bir `README.md`; planı, takımı, sözleşmeyi, QA'nın çalıştırdığı testleri ve
+> düzeltilen her hatayı içeren bir `BUILD-LOG.md`. Sonu çalıştırma komutu ve beş satırlık bir
+> özetle bağla.
+
+---
+
+**Sahne notu:** takım çalışırken salona şunu sor: "üç alt-ajan aynı anda yazıyor, peki
+frontend ile backend'in hâlâ birbirine oturduğuna kim karar veriyor?" Cevap ekranda:
+orkestratörün, daha kimse yazmaya başlamadan yayımladığı sözleşme. İş bitince `npm install`,
+sonra `node server.js` çalıştır ve http://localhost:3000 adresini aç. Dört ekranı gez,
+Ayarlar'da temayı ve para birimini değiştir, sonra seyirciden bir değişiklik isteği al.
+Kurulum takılırsa yedek: `cd showcase/data-dashboard` ve `node server.js`.

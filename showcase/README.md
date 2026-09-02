@@ -1,57 +1,69 @@
-# Showcase: the prompts, already built by agent teams
+# Vitrin: reçeteler, ajan takımlarının elinden çıkmış hâliyle
 
-Every app here was born from ONE mega-prompt in [`../prompts/apps/`](../prompts/apps/). Claude
-Code read the recipe, formed a real team of sub-agents (a Backend Lead, a Frontend Lead and a
-QA Lead, each free to spawn workers), published the contract first, built in parallel,
-integrated the parts, and let QA try to break the result. Each folder keeps the evidence: the
-code, a `BUILD-LOG.md` of the team at work (plan, roles, contract, tests, bugs found and
-fixed), and screenshots. Open a recipe in `prompts/apps/`, then the matching folder here, to
-see exactly what that one prompt produced.
+Buradaki her uygulama, [`../prompts/apps/`](../prompts/apps/) içindeki TEK bir mega-prompttan
+doğdu. Claude Code reçeteyi okudu, alt ajanlardan gerçek bir takım kurdu (bir Backend Lideri,
+bir Frontend Lideri ve bir QA Lideri; her biri kendine yardımcı çıkarmakta serbestti), önce
+sözleşmeyi yayımladı, paralel çalıştı, parçaları birleştirdi ve sonucu kırmayı QA'ya bıraktı.
+Her klasör kanıtı saklıyor: kod, takımın çalışmasını anlatan bir `BUILD-LOG.md` (plan, roller,
+sözleşme, testler, bulunan ve giderilen hatalar) ve ekran görüntüleri. `prompts/apps/` içinde
+bir reçeteyi açın, sonra buradaki eşleşen klasörü açın; o tek promptun neyi ürettiğini
+birebir görürsünüz.
 
-## The three builds
+## Üç yapım
 
-| App | Product name and what it is | Recipe |
+| Uygulama | Ürün adı ve ne olduğu | Reçete |
 |---|---|---|
-| [data-dashboard](data-dashboard/) | **Satış Analitik Paneli**, a sales dashboard over a CSV: KPI cards, charts, filters that drive every widget, server-computed insights and CSV import | [data-dashboard.md](../prompts/apps/data-dashboard.md) |
-| [neon-breaker](neon-breaker/) | **Neon Breaker**, a canvas Breakout: real paddle physics, power-ups, particles, synthesized sound and a leaderboard | [neon-breaker.md](../prompts/apps/neon-breaker.md) |
-| [qr-menu](qr-menu/) | **QR Menü**, a phone-first restaurant menu plus an admin panel, with real QR codes | [qr-menu.md](../prompts/apps/qr-menu.md) |
+| [data-dashboard](data-dashboard/) | **Satış Analitik Paneli**, bir CSV üzerinden çalışan satış panosu: KPI kartları, grafikler, her bileşeni birlikte değiştiren filtreler, sunucuda hesaplanan içgörüler ve CSV içe aktarma | [data-dashboard.md](../prompts/apps/data-dashboard.md) |
+| [neon-breaker](neon-breaker/) | **Neon Breaker**, canvas üzerinde bir Breakout: gerçek raket fiziği, güçlendirmeler, parçacıklar, sentezlenmiş ses ve bir skor tablosu | [neon-breaker.md](../prompts/apps/neon-breaker.md) |
+| [live-chat](live-chat/) | **Salon Sohbeti**, gerçek zamanlı bir sohbet ürünü: odalar, anlık mesajlar, kimin çevrimiçi olduğu ve "yazıyor..." göstergesi, emoji tepkileri, arama, bir ayarlar ekranı ve aynı wifi'daki telefonlar için katılım QR'ı | [live-chat.md](../prompts/apps/live-chat.md) |
 
-These three are exactly the ones the room votes on at Stop 5.
+Salonun 5. durakta oylayacağı üç aday tam olarak bunlar.
 
-## Why this folder exists
+## Bu klasör neden var
 
-1. **Proof you can browse.** Anyone who reads a recipe can see the finished product, read who
-   did what in `BUILD-LOG.md`, run it, and check the `Verified` list. No trust required.
-2. **The stage fallback.** If the live build takes too long or the network dies, the presenter
-   opens the matching folder here and runs it: "a team of agents built this from that exact
-   prompt, here is the result, and here is who did what."
+1. **Gezinebileceğiniz kanıt.** Reçeteyi okuyan herkes bitmiş ürünü görebilir, `BUILD-LOG.md`
+   dosyasından kimin ne yaptığını okuyabilir, uygulamayı çalıştırabilir ve `Doğrulandı`
+   listesini kontrol edebilir. Kimseye güvenmeniz gerekmiyor.
+2. **Sahnedeki yedek.** Canlı kurulum uzarsa ya da internet giderse, sunucu buradaki eşleşen
+   klasörü açıp çalıştırır: "bunu, tam olarak o prompttan bir ajan takımı yaptı, sonuç burada,
+   kimin ne yaptığı da burada."
 
-## Run any of them
+## Herhangi birini çalıştırma
 
 ```bash
 cd showcase/<app>
-npm install       # once, needs internet
-node server.js    # then open http://localhost:3000
+npm install       # bir kereye mahsus, internet ister
+node server.js    # sonra http://localhost:3000 adresini aç
 ```
 
-`PORT=3001 node server.js` moves it to another port if 3000 is taken.
+3000 portu doluysa `PORT=3001 node server.js` uygulamayı başka bir porta taşır.
 
-## What they all share
+Bilmeye değer tek istisna Salon Sohbeti: yalnızca localhost yerine `0.0.0.0` adresine bağlanır
+ve açılışta yerel adresin yanına dizüstünün yerel ağ adresini de yazar. Katılım QR'ının
+kodladığı adres işte o yazdırılan adres; böylece aynı wifi'daki telefonlar içeri girebilir.
+Onunla ilgili geri kalan her şey aynı: yine aynı iki komut.
 
-- **One folder, no build step.** `server.js` (Express on Node with the built-in `node:sqlite`,
-  so nothing native compiles on your machine) serves both the API and `public/`, which is
-  plain HTML, CSS and JavaScript. No bundler, no framework, no compile.
-- **Node 24 or newer.** There `node:sqlite` needs no flag; on Node 22.x it sits behind
-  `--experimental-sqlite` (see `docs/setup/`).
-- **Standalone.** Each folder runs on its own. `data.sqlite` is created and seeded on first
-  start and is gitignored, so every clone starts fresh, your data survives restarts, and
-  deleting that one file resets the app.
-- **One app at a time** on port 3000; use the `PORT` override above to run a second.
-- **The team is on record.** `BUILD-LOG.md` in every folder tells the plan, the roles and
-  their models, the contract, every test QA ran and every bug it caught.
-- **Screenshots.** `screenshots/` in every folder shows the desktop and phone views.
-- **Before a stage,** run `npm install` in all three ahead of time so the fallback starts in
-  seconds without a network.
+## Hepsinde ortak olan
 
-Each app folder's `README.md` carries the product name, the two commands, the features, the
-team that built it, the screenshots and the `Verified` checklist.
+- **Tek klasör, derleme adımı yok.** `server.js` (Node üzerinde Express ve yerleşik
+  `node:sqlite`, yani makinenizde hiçbir yerel bileşen derlenmez) hem API'yi hem de düz HTML,
+  CSS ve JavaScript'ten oluşan `public/` klasörünü sunar. Bundler yok, framework yok,
+  derleme yok.
+- **Node 24 veya üstü.** Orada `node:sqlite` için bayrak gerekmez; Node 22.x üzerinde ise
+  `--experimental-sqlite` arkasında durur (bkz. `docs/setup/`).
+- **Kendi ayakları üstünde.** Her klasör tek başına çalışır. `data.sqlite` ilk açılışta
+  oluşturulup örnek verilerle doldurulur ve gitignore'dadır; yani her kopya tertemiz başlar,
+  verileriniz yeniden başlatmalarda kalır ve o tek dosyayı silmek uygulamayı sıfırlar.
+- **Aynı anda tek uygulama** 3000 portunda; ikincisini çalıştırmak için yukarıdaki `PORT`
+  değişikliğini kullanın.
+- **Takım kayıt altında.** Her klasördeki `BUILD-LOG.md` planı, rolleri ve modellerini,
+  sözleşmeyi, QA'nın çalıştırdığı her testi ve yakaladığı her hatayı anlatır.
+- **Ekran görüntüleri.** Bir klasörde içi dolu bir `screenshots/` dizini varsa, oradakiler
+  masaüstü (1440x900) ve telefon (390x844) görünümleridir.
+- **Sahneden önce,** üçünde de `npm install` komutunu önceden çalıştırın; böylece yedek,
+  internete ihtiyaç duymadan saniyeler içinde açılır.
+
+Bitmiş bir uygulama klasörünün `README.md` dosyasında ürün adı, iki komut, özellikler, onu
+yapan takım, ekran görüntüleri ve `Doğrulandı` kontrol listesi bulunur. Yapımı hâlâ süren bir
+klasörde README ya da ekran görüntüleri eksik olabilir; sahnedeki yedek olarak ona
+yaslanmadan önce içine bakın.

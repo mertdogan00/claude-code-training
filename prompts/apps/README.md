@@ -1,78 +1,88 @@
-# Application mega-prompts
+# Uygulama mega-promptları
 
-A recipe here is a ONE-SHOT prompt: paste it as-is into a fresh Claude Code session and a whole
-application is born from zero, with no approval pauses. The difference from an ordinary prompt
-is what happens on screen next. Claude Code does not sit there typing files alone, it FORMS A
-TEAM: it spawns lead sub-agents with its Agent tool, gives each one a scope, runs them in
-parallel, then integrates their work and puts a QA lead over the result. Watching that unfold
-is the lesson; the app is the souvenir.
+Buradaki her reçete TEK ATIŞLIK bir prompttur: olduğu gibi kopyalayıp yeni bir Claude Code
+oturumuna yapıştırırsın, sıfırdan koca bir uygulama doğar, hiçbir onay molası vermeden.
+Sıradan bir prompttan farkı, ekranda bundan sonra olanlardır. Claude Code orada tek başına
+dosya yazmaz, bir TAKIM KURAR: kendi Agent aracıyla lider alt-ajanlar açar, her birine bir
+görev alanı verir, hepsini paralel çalıştırır, sonra işlerini birleştirir ve sonucun başına bir
+QA lideri koyar. Asıl ders bunun gözünün önünde açılması; uygulama yanına kalan hediye.
 
-## The shared skeleton
+| Reçete | Elinde ne olacak | Vurucu yanı |
+|---|---|---|
+| [data-dashboard.md](data-dashboard.md) | **Satış Analitik Paneli**: bir CSV üzerinden satış panosu; KPI'lar, grafikler, filtreler, içgörüler ve CSV içe aktarma | rakamlar dakikalar içinde canlı bir panoya dönüşüyor |
+| [neon-breaker.md](neon-breaker.md) | **Neon Breaker**: gerçek raket fiziği, güçlendirmeler, parçacıklar, ses ve skor tablosu olan bir canvas Breakout | sahnede, tek bir prompttan çıkan gerçek bir oyun |
+| [live-chat.md](live-chat.md) | **Salon Sohbeti**: odaları, "yazıyor" göstergesi, tepkileri, araması, ayarları ve aynı wifi'daki telefonlar için katılım QR'ı olan gerçek zamanlı bir sohbet | WhatsApp altı dakikada; salon telefonundan katılıyor |
 
-All three recipes are built the same way:
+## Ortak iskelet
 
-**autonomy clause** (print a plan, then run to the end, never stop for approval) then
-**contract first** (the orchestrator publishes the file list, the port, the routes and the JSON
-shapes BEFORE anyone writes code, which is the only reason parallel work fits together) then
-**form the team, for real** (a Backend Lead, a Frontend Lead and a QA Lead spawned with the
-Agent tool, each free to spawn a worker or two) then **the job** then **the stack** then
-**6 to 8 numbered features** then **a 6-item acceptance checklist** the QA lead verifies on
-screen or with curl, then **definition of done** (a `README.md` and a `BUILD-LOG.md` that
-records the plan, the team, the contract, the tests and every bug fixed).
+Üç reçete de aynı şekilde kurulur:
 
-The stack is the same in all three, and it is deliberately small:
+**özerklik maddesi** (planı yaz, sonra sonuna kadar koş, onay için hiç durma) ardından
+**önce sözleşme** (orkestratör, kimse kod yazmadan ÖNCE dosya listesini, portu, rotaları ve
+JSON şekillerini yayımlar; paralel işin sonradan birbirine oturmasının tek sebebi budur)
+ardından **takımı gerçekten kur** (Agent aracıyla açılan bir Backend Lideri, bir Frontend
+Lideri ve bir QA Lideri; her biri bir iki işçi açmakta serbest) ardından **iş** ardından
+**ürün kabuğu** (ürün adı ve profil rozeti olan bir üst bar, en az üç ekran üzerinden
+gezinme, gerçekten bir şeyleri değiştiren bir ayarlar ekranı, boş ve yükleniyor durumları,
+tek vurgu rengi olan tek bir palet, Türkçe arayüz metni, 390px'te okunur: demo değil,
+yayınlanmış bir ürün gibi görünmeli) ardından **yığın** ardından **numaralı 8 özellik**
+ardından QA liderinin ekranda ya da curl ile doğruladığı **6 maddelik kabul kontrol listesi**,
+en sonda da **bitti tanımı** (planı, takımı, sözleşmeyi, testleri ve düzeltilen her hatayı
+kayda geçiren bir `README.md` ve bir `BUILD-LOG.md`).
+
+Yığın üçünde de aynı ve bilerek küçük tutuldu:
 
 ```
 <app>/
-  package.json     "type": "module", a start script running node server.js
-  server.js        Node 24 + Express + the built-in node:sqlite (DatabaseSync)
-  public/          plain HTML, CSS and JavaScript
-  data.sqlite      created and seeded on first start; delete it to reset
+  package.json     "type": "module", node server.js çalıştıran bir start betiği
+  server.js        Node 24 + Express + gömülü node:sqlite (DatabaseSync)
+  public/          düz HTML, CSS ve JavaScript
+  data.sqlite      ilk açılışta oluşturulup dolduruluyor; silmek uygulamayı sıfırlar
   README.md        BUILD-LOG.md
 ```
 
-Two commands, always the same two:
+İki komut, hep aynı iki komut:
 
 ```bash
 npm install
-node server.js        # then open http://localhost:3000
+node server.js        # sonra http://localhost:3000 adresini aç
 ```
 
-`PORT=3001 node server.js` moves it to another port. Node 24 or newer, because `node:sqlite` is
-built into it and nothing native has to compile.
+`PORT=3001 node server.js` uygulamayı başka bir porta taşır. Node 24 ya da üstü gerekiyor,
+çünkü `node:sqlite` onun içine gömülü ve derlenmesi gereken hiçbir yerel parça kalmıyor.
+Salon Sohbeti buna iki küçük paket ekler, canlı bağlantı için `ws` ve katılım kodu için
+`qrcode`, ayrıca bütün ağ arayüzlerini dinler ki aynı wifi'daki telefonlar erişebilsin.
 
-| Recipe | What you get | Who it serves |
-|---|---|---|
-| [data-dashboard.md](data-dashboard.md) | **Satış Analitik Paneli**: KPI cards, revenue timeline, category donut, city bars, a searchable product table, server-computed insights, filters that drive every widget at once | anyone who reports numbers |
-| [neon-breaker.md](neon-breaker.md) | **Neon Breaker**: a canvas Breakout with real paddle physics, five levels, falling power-ups, particles, synthesized sound and a leaderboard | fun, and game-loop logic |
-| [qr-menu.md](qr-menu.md) | **QR Menü**: a phone-first restaurant menu plus an admin panel behind one password, sold-out toggles and real QR table cards | cafes, restaurants |
+`showcase/` klasöründe aynı üçünün gerçek ajan takımlarınca kurulmuş halleri duruyor: kodu,
+kimin ne yaptığını anlatan bir `BUILD-LOG.md` ve ekran görüntüleri. Canlı kurulum takılırsa
+sahne yedeğin orası; aynı zamanda her reçetenin ne ürettiğinin kanıtı.
 
-The `showcase/` folder holds the same three, already built by real agent teams: the code, a
-`BUILD-LOG.md` of who did what, and screenshots. Use it as the stage fallback if a live build
-stalls, and as proof of what each recipe produces.
+## Eğitim akşamı
 
-## On training night
+Salon yukarıdaki üçü arasında oy verir. Hangisi kazanırsa kazansın, devamı aynıdır:
 
-The room votes between the three above. Whichever wins, the follow-through is identical:
+1. Kazananın dosyasını ekranda aç ve iki `---` çizgisi arasındaki her şeyi kopyala.
+2. Terminalde: `mkdir demo && cd demo && claude`, tertemiz bir oturum.
+3. Yapıştır. Başka hiçbir şey yazma: plan da, özerklik de, takım da, kontrol listesi de
+   promptun içinde.
+4. Kurulum sürerken takım anlatısını sesli oku: kim açıldı, hangi lider ne yapıyor, her biri
+   ne getirdi. Sahnenin bütün derdi o canlı organizasyon şeması.
+5. Bitince: `npm install`, sonra `node server.js`, sonra http://localhost:3000 adresini aç.
+6. Ekranları gez, Ayarlar'ı aç ve temayı herkesin gözü önünde değiştir, sonra salondan bir
+   değişiklik isteği al ve onu tek bir cümle olarak yaz.
 
-1. Open the winner's file on screen and copy everything between the two `---` lines.
-2. In a terminal: `mkdir demo && cd demo && claude`, a virgin session.
-3. Paste. Type nothing else: the prompt carries its own plan, autonomy, team and checklist.
-4. While it builds, read the team narration out loud: who got spawned, what each lead is
-   doing, what each one returned. That live org chart is the whole point of the stage.
-5. When it finishes: `npm install`, then `node server.js`, then open http://localhost:3000.
-6. Take one change request from the room and type it as a single sentence.
+Oyu kaybeden ikisi ev ödevin. BU AKŞAM birini seç, yapıştır, izle, sonra tek bir takip
+cümlesiyle bir özelliğini değiştir ("donut'ı çubuk grafiğe çevir", "üçüncü bir top
+güçlendirmesi ekle", "sadece duyurular için bir oda ekle"). Yaşayan bir uygulamayı
+düzenlemek, sıfırdan başlatmaktan çok daha fazlasını öğretir. Takımın arkasında bıraktığı
+`BUILD-LOG.md` dosyasını da oku: her ajanın, her testin, her hatanın adı orada.
 
-The two that lost the vote are the homework. Pick one TONIGHT, paste it, watch it, then change
-one feature with a single follow-up sentence ("turn the donut into a bar chart", "add a third
-ball power-up", "add a dessert category"). Editing a living app teaches more than starting one.
-Read the `BUILD-LOG.md` the team leaves behind too: it names every agent, every test, every bug.
+## Kendi mega-promptunu yazmak
 
-## Writing your own mega-prompt
-
-Use the template: AUTONOMY (no approval stops) · CONTRACT (files, port, routes and shapes
-published before anyone codes) · TEAM (leads spawned with the Agent tool, plus workers) · WHAT
-(the job in one sentence) · STACK (one folder, `package.json`, `server.js`, `public/`, the two
-commands) · FEATURES (6 to 8, numbered) · CHECKLIST (6 items, each verifiable on screen or with
-curl) · DONE (the proof, plus the build log). The longer and more concrete the prompt, the
-shorter the surprise at the end.
+Şablon şu: ÖZERKLİK (onay molası yok) · SÖZLEŞME (dosyalar, port, rotalar ve şekiller kimse
+kod yazmadan yayımlanır) · TAKIM (Agent aracıyla açılan liderler, artı işçiler) · NE (işin
+tek cümlelik tarifi) · KABUK (üst bar, üç ekran, gerçekten bir şeyleri değiştiren bir ayarlar
+ekranı, boş durumlar, tek vurgu rengi) · `YIĞIN` (tek klasör, `package.json`, `server.js`,
+`public/`, iki komut) · ÖZELLİKLER (8 tane, numaralı) · KONTROL LİSTESİ (6 madde, her biri
+ekranda ya da curl ile doğrulanabilir) · BİTTİ (kanıt, artı kurulum günlüğü). Prompt ne kadar
+uzun ve somutsa, sondaki sürpriz o kadar küçük olur.

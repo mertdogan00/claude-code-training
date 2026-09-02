@@ -1,21 +1,21 @@
 ---
 name: social-post
-description: Turn one Turkish text into three platform-ready posts - use when the user gives an announcement, idea or news and wants LinkedIn, Instagram and X versions
+description: Tek bir Türkçe metni üç platforma hazır gönderiye çevirir - kullanıcı bir duyuru, fikir ya da haber verip LinkedIn, Instagram ve X sürümlerini istediğinde kullan
 ---
 
-# Social Post
+# Sosyal Medya Gönderisi
 
-When invoked with a source text (pasted or a file path):
+Bir kaynak metinle çağrıldığında (yapıştırılmış ya da bir dosya yolu):
 
-1. Extract the ONE core message first; state it back in a single line.
-2. Produce three versions, each clearly labeled, following the per-platform rules in
-   `references/platform-notes.md`:
-   - **LinkedIn:** 4-6 short paragraphs, hook first line, max 3 hashtags, a closing question.
-   - **Instagram:** 2-3 sentences with line breaks, warmer tone, 5 hashtags on the last line.
-   - **X:** at most 280 characters, punchiest angle, no hashtags.
-3. All Turkish; keep the user's facts exactly, invent nothing; no emoji unless the source
-   itself is informal.
-4. Verify, never eyeball: save each draft to a temp file and run the deterministic guard,
-   fixing every FAIL before showing the result:
-   `node scripts/check_limits.js x draft-x.txt` (same for `linkedin` / `instagram`).
-5. End with: "Hangisini açalım?" so the user picks one to refine.
+1. Önce TEK bir ana mesajı çıkar; onu tek cümleyle geri söyle.
+2. `references/platform-notes.md` içindeki platform kurallarına uyarak, her biri açıkça
+   etiketlenmiş üç sürüm üret:
+   - **LinkedIn:** 4-6 kısa paragraf, ilk satır kanca, en fazla 3 hashtag, sonda bir soru.
+   - **Instagram:** satır aralı 2-3 cümle, daha sıcak bir ton, son satırda 5 hashtag.
+   - **X:** en fazla 280 karakter, en vurucu açı, hashtag yok.
+3. Hepsi Türkçe; kullanıcının verdiği bilgileri birebir koru, hiçbir şey uydurma; kaynağın
+   kendisi samimi bir dille yazılmadıysa emoji kullanma.
+4. Göz kararı değil, doğrula: her taslağı geçici bir dosyaya kaydet ve kesin sonuç veren
+   denetleyiciyi çalıştır, her FAIL'i sonucu göstermeden önce düzelt:
+   `node scripts/check_limits.js x draft-x.txt` (`linkedin` / `instagram` için de aynısı).
+5. Şununla bitir: "Hangisini açalım?" Böylece kullanıcı birini seçip üzerinde çalışabilir.

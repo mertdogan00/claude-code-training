@@ -1,71 +1,75 @@
-# Claude Code Training
+# Claude Code Eğitimi
 
-Hands-on companion repository for the **Claude Code training** (Sept 2, 2026, Orion Tekmer,
-Ankara) by [Mert Doğan](https://github.com/mertdogan00), co-founder of Framepx.
+**Claude Code eğitiminin** (2 Eylül 2026, Orion Tekmer, Ankara) uygulama deposu. Eğitmen:
+Framepx kurucu ortağı [Mert Doğan](https://github.com/mertdogan00).
 
-You do NOT need to know how to code. This repo is the exact workspace used on stage: clone
-it, step into a stage folder, and let Claude Code do the typing while you do the thinking.
+Kod bilmenize gerek YOK. Bu depo, sahnede kullanılan çalışma alanının aynısı: klonlayın,
+numaralı bir egzersiz klasörüne girin, yazma işini Claude Code yapsın, siz düşünün.
 
-## Quickstart
+## Hızlı başlangıç
 
 ```bash
-# 0. install Node 24 or newer from https://nodejs.org (details per OS in docs/setup/)
-# 1. install Claude Code
+# 0. Node 24 ya da daha yenisi: https://nodejs.org (işletim sistemine göre ayrıntılar docs/setup/)
+# 1. Claude Code'u kur
 npm install -g @anthropic-ai/claude-code
 
-# 2. clone this repo and enter it
+# 2. bu depoyu klonla ve içine gir
 git clone https://github.com/mertdogan00/claude-code-training.git
 cd claude-code-training
 
-# 3. start
+# 3. başlat
 claude
 ```
 
-You need **Node 24 or newer** plus **Claude Code** itself; that is the whole toolbox. A
-Claude **Pro** plan or higher is the simplest way in; pay-as-you-go API billing also works
-(see [pricing](https://claude.com/pricing)). The demo apps under `showcase/` need one
-`npm install` each and nothing else; see `docs/setup/`.
+Gereken tek şey **Node 24 veya üstü** ile **Claude Code**; alet çantası bu kadar. En kolay
+yol bir Claude **Pro** planı ya da üstü; kullandıkça öde API faturalandırması da olur
+([fiyatlar](https://claude.com/pricing)). `showcase/` altındaki demo uygulamalar için her
+birinde bir kez `npm install` yeterli, başka bir şey gerekmiyor; ayrıntılar `docs/setup/`
+klasöründe.
 
-## The five stops
+## Beş durak
 
-The training is one journey with five stops. Stop 1 is talk only; from stop 2 on, every
-stop has a folder in this repo that you can redo at home:
+Eğitim, beş durağı ve yedi uygulaması olan tek bir yolculuk. 1. durak sadece sohbet;
+2. duraktan sonra her uygulamanın `exercises/` altında kendi numaralı klasörü var ve her
+klasör, ister etkinlikte ister evde, kopyala-yapıştır yapabileceğiniz bir SAHNEDE bloğuyla
+açılıyor:
 
-| Stop | On stage | In this repo |
+| Durak | Sahnede | Bu depoda |
 |---|---|---|
-| 1 · Big Picture | where AI came from, why Claude Code | (talk only) |
-| 2 · Setup | terminal basics, Git and GitHub, install on 3 systems, first launch | `docs/setup/` + `exercises/stage-2-hello/` |
-| 3 · Core Concepts | prompt, token, context, CLAUDE.md, commands, live before/after | `exercises/stage-3-context/` + `commands.md` |
-| 4 · Extending | skills, plugins, MCP | `exercises/stage-4-extend/` + `skills/` |
-| 5 · Live Build | the room votes between Satış Analitik Paneli, Neon Breaker and QR Menü, one prompt forms a team of agents, an app is born and runs with `node server.js` | `exercises/stage-5-build/` + `prompts/apps/` (built: `showcase/`) |
+| 1 · Büyük Resim | yapay zeka nereden geldi, neden Claude Code | (sadece anlatım) |
+| 2 · Kurulum | terminalin temelleri, Git ve GitHub, 3 sistemde kurulum, ilk açılış | `exercises/01-install/` + `exercises/02-first-launch/` (+ `docs/setup/`) |
+| 3 · Temel Kavramlar | prompt, token, context, CLAUDE.md, komutlar, canlı öncesi-sonrası | `exercises/03-commands/` + `exercises/04-claude-md/` (+ `commands.md`) |
+| 4 · Genişletme | skill, plugin, MCP | `exercises/05-skill/` + `exercises/06-plugin-mcp/` (+ `skills/`) |
+| 5 · Canlı Kurulum | salon Satış Analitik Paneli, Neon Breaker ve Salon Sohbeti arasında oy veriyor, tek bir prompt bir ajan takımı kuruyor, uygulama doğuyor ve `node server.js` ile çalışıyor | `exercises/07-build/` + `prompts/apps/` (hazır hali: `showcase/`) |
 
-## Map
+## Harita
 
-| Path | What it is |
+| Yol | Nedir |
 |---|---|
-| `PRESENTER.md` | the stage navigation script: which file, which command, at which moment |
-| `CLAUDE.md` | the project memory: how Claude behaves in THIS repo (annotated as a teaching example) |
-| `docs/setup/` | install guides: macOS · Windows · Linux |
-| `exercises/` | four folders, one per hands-on stage: `stage-2-hello/`, `stage-3-context/`, `stage-4-extend/`, `stage-5-build/`, each with its own README |
-| `prompts/` | ready-to-paste prompt library |
-| `prompts/apps/` | THREE team-forming mega-prompts: each one makes Claude Code spawn lead and worker sub-agents, publish a contract first and run QA last (Satış Analitik Paneli, Neon Breaker, QR Menü). One simple stack: one folder, Express, the built-in `node:sqlite`, plain HTML, CSS and JavaScript, no build step |
-| `showcase/` | the SAME three prompts, already built by real agent teams: the code, a BUILD-LOG.md of the team at work, screenshots; `npm install` then `node server.js` |
-| `data/` | sample sales CSV the dashboard prompt reads |
-| `skills/` | FOUR finished skills with scripts and templates (`skills/README.md` has the picker) |
-| `commands.md` | the command card: terminal basics + the 15 slash commands in three tiers |
-| `resources.md` | official links: docs, marketplaces, MCP, models |
-| `after-training.md` | your path after the event: what to build first |
+| `PRESENTER.md` | sahne yönlendirme metni: hangi dosya, hangi komut, hangi anda |
+| `CLAUDE.md` | proje hafızası: Claude'un BU depoda nasıl davrandığı (öğretici örnek olarak notlandı) |
+| `docs/setup/` | kurulum rehberleri: macOS · Windows · Linux |
+| `exercises/` | her uygulama için bir tane olmak üzere YEDİ numaralı klasör: `01-install/`, `02-first-launch/`, `03-commands/`, `04-claude-md/`, `05-skill/`, `06-plugin-mcp/`, `07-build/`. Her README kopyala-yapıştır bir SAHNEDE bloğuyla açılır, 2 ila 4 hazır seçenek sunar ve canlı deneme tutmazsa ne gösterileceğiyle biter |
+| `prompts/` | yapıştırmaya hazır prompt kütüphanesi |
+| `prompts/apps/` | takım kuran ÜÇ mega-prompt: her biri Claude Code'a lider ve işçi alt ajanlar doğurtur, önce bir sözleşme yayımlatır, en sonda QA yaptırır (Satış Analitik Paneli, Neon Breaker, Salon Sohbeti). Tek ve sade bir yığın: tek klasör, Express, gömülü `node:sqlite`, düz HTML, CSS ve JavaScript, derleme adımı yok |
+| `showcase/` | AYNI promptların gerçek ajan takımlarınca kurulmuş hali: kod, takımı iş başında gösteren bir BUILD-LOG.md ve kurulum sırasında yakalandıysa ekran görüntüleri; `npm install` sonra `node server.js`. İçeride ne var, `showcase/README.md` anlatıyor |
+| `data/` | panel promptunun okuduğu örnek satış CSV'si |
+| `skills/` | betikleri ve şablonlarıyla DÖRT bitmiş skill (seçim rehberi `skills/README.md` içinde) |
+| `commands.md` | komut kartı: terminalin temelleri + üç kademede 15 slash komutu |
+| `resources.md` | resmi bağlantılar: dokümanlar, marketler, MCP, modeller |
+| `after-training.md` | etkinlik sonrası yolunuz: önce neyi kuracaksınız |
 
-## How to use this repo after the training
+## Eğitimden sonra bu depoyu nasıl kullanırsınız
 
-1. Read `CLAUDE.md` (it is short, and it is the whole trick).
-2. Redo `exercises/stage-2-hello/`, then `exercises/stage-3-context/`, on your own machine.
-   Feel the CLAUDE.md difference once more, on your own screen.
-3. Install a skill from `skills/` (`skills/README.md`) and run it on a real file.
-4. Paste ONE mega-prompt from `prompts/apps/` and watch Claude Code form a team and a whole
-   app get born; run it with `npm install` then `node server.js` and open
-   http://localhost:3000; then change one feature with a single follow-up sentence. (Or
-   browse `showcase/` for the same three, already built by agent teams, each with its
-   BUILD-LOG.md and screenshots.)
+1. `CLAUDE.md` dosyasını okuyun (kısadır ve işin bütün sırrı orada).
+2. Kendi bilgisayarınızda önce `exercises/02-first-launch/`, sonra `exercises/04-claude-md/`
+   adımlarını tekrarlayın. CLAUDE.md'nin yarattığı farkı bir kez de kendi ekranınızda görün.
+3. `skills/` klasöründen bir skill kurun (`skills/README.md`) ve gerçek bir dosya üzerinde
+   çalıştırın.
+4. `prompts/apps/` içinden BİR mega-promptu yapıştırın; Claude Code'un bir takım kurmasını ve
+   koca bir uygulamanın doğuşunu izleyin; `npm install` sonra `node server.js` ile çalıştırıp
+   http://localhost:3000 adresini açın; ardından tek bir cümlelik istekle bir özelliği
+   değiştirin. (Ya da aynı promptların ajan takımlarınca kurulmuş hallerine, her birinin
+   BUILD-LOG.md dosyasıyla birlikte `showcase/` altından göz atın.)
 
-Start small, grow it one piece at a time.
+Küçük başlayın, parça parça büyütün.

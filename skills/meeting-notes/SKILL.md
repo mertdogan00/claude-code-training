@@ -1,20 +1,20 @@
 ---
 name: meeting-notes
-description: Turn raw meeting notes into structured Turkish minutes - use when the user gives messy notes, a transcript or bullet fragments from a meeting
+description: Ham toplantı notlarını düzenli Türkçe tutanağa çevirir - kullanıcı dağınık notlar, bir deşifre metni ya da toplantıdan kalma madde kırıntıları verdiğinde kullan
 ---
 
-# Meeting Notes
+# Toplantı Tutanağı
 
-When the user invokes this skill with raw notes (pasted text or a file path):
+Kullanıcı bu skill'i ham notlarla çağırdığında (yapıştırılmış metin ya da bir dosya yolu):
 
-1. Read everything first; do not summarize line by line.
-2. Fill the output template at `references/template.md` exactly, in Turkish:
-   - **Özet** (3 sentences: what was discussed, what changed)
-   - **Kararlar** (numbered; one sentence each, with who decided when stated)
-   - **Aksiyonlar** (table: iş · sahibi · tarih; write "?" when the notes do not say)
-   - **Açık konular** (raised but not resolved)
-3. Never invent owners or dates; missing is missing.
-4. End with one line: the single most urgent follow-up.
+1. Önce her şeyi oku; satır satır özetlemeye kalkma.
+2. `references/template.md` dosyasındaki çıktı şablonunu Türkçe olarak birebir doldur:
+   - **Özet** (3 cümle: neler konuşuldu, ne değişti)
+   - **Kararlar** (numaralı; her biri tek cümle, belirtilmişse kimin karar verdiğiyle birlikte)
+   - **Aksiyonlar** (tablo: iş · sahibi · tarih; notlarda geçmiyorsa "?" yaz)
+   - **Açık konular** (gündeme gelmiş ama sonuca bağlanmamış olanlar)
+3. Sahip ya da tarih asla uydurma; eksikse eksik kalır.
+4. Tek satırla bitir: en acil takip edilmesi gereken tek konu.
 
-Keep the whole output under one screen. If the notes are in English, still answer in
-Turkish: the reader of the minutes is Turkish.
+Bütün çıktıyı bir ekranı geçmeyecek kadar kısa tut. Notlar İngilizceyse yine Türkçe cevap ver:
+tutanağı okuyan kişi Türk.

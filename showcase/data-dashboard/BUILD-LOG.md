@@ -1,152 +1,151 @@
 # BUILD-LOG: Satış Analitik Paneli
 
-How this folder came to exist. One mega prompt
-([`prompts/apps/data-dashboard.md`](../../prompts/apps/data-dashboard.md)) went into a fresh
-Claude Code session. That session acted as the ORCHESTRATOR: it printed a plan, published a
-contract, formed a team of sub agents, integrated their work, and let QA try to break the
-result. Nobody typed a second instruction.
+Takım iş başında. Bu dosya yapımın gerçekte olduğu sırayla yazıldı: önce plan, sonra paralel işin
+birbirine oturmasını sağlayan sözleşme, sonra roller, en sonda da QA'nın çalıştırdıkları ve
+yakaladığı bütün hatalar.
 
-## 1. The plan the orchestrator printed
+Kaynak prompt: [`../../prompts/apps/data-dashboard.md`](../../prompts/apps/data-dashboard.md),
+olduğu gibi yapıştırıldı. Hedef: 6 ile 10 dakika arası canlı yapım, `npm install` + `node
+server.js`, derleme adımı yok, framework yok.
 
-1. Publish the contract (file list, port, routes, JSON shapes, DB schema, filter params) before
-   anyone writes a line.
-2. Spawn the Backend Lead and the Frontend Lead in parallel, both building against that
-   contract and nothing else.
-3. Backend Lead: `package.json` plus `npm install` first (that unblocks the frontend), then
-   `server.js`, the schema, the CSV import or the row generator, every aggregation and the
-   insight engine.
-4. Frontend Lead: `public/`, the KPI cards, the charts, the filter bar, the product table, the
-   insight panel, the dark look and the 390px layout.
-5. QA Lead once both land: run the server on port 3000, turn the six acceptance items into real
-   checks, report pass or fail per item, fix the fails.
-6. Orchestrator review: an independent curl pass over every route plus 1440x900 and 390x844
-   frames read back with a headless browser.
-7. Fix wave: workers repair what the review caught, each on its own port so nothing collides.
-8. Clean check: wipe `node_modules`, `npm install`, `node server.js`, prove HTTP 200 and a JSON
-   route, then kill the server and free the port.
+## 1. Orkestratörün yazdırdığı plan
 
-## 2. The team
+1. Sözleşmeyi yayımla: dosya listesi, port, her API yolu ve döndürdüğü JSON biçimi.
+2. Üç lideri başlat ve her birine bir sohbeti değil, sözleşmeyi ver.
+3. Backend Lideri: `server.js`, SQLite şeması, CSV içeri alma ya da satır üreticisi, bütün
+   toplulaştırma uçları, içgörü motoru.
+4. Frontend Lideri: `public/`, ürün kabuğu, dört ekran, KPI kartları, grafikler, filtreler.
+5. QA Lideri: altı kabul maddesini gerçek testlere çevir, sunucuyu başlat, tarayıcıda ve curl ile
+   doğrula, madde madde geçti ya da kaldı diye raporla.
+6. Birleştir: arka uçla ön uç arasındaki dikişleri çöz, QA'nın bildirdiklerini düzelt.
+7. Her ekranın 1440x900 ve 390x844 ekran görüntüsünü al.
+8. `README.md` ve `BUILD-LOG.md` dosyalarını yaz, sonra boş bir `node_modules` üzerinden temiz
+   kontrolü çalıştır.
 
-| Role | Model | Effort | Owned |
-|---|---|---|---|
-| Orchestrator | Claude Opus 5 | high | the contract, integration, review, this log and the README |
-| Backend Lead | Claude Sonnet | medium | `package.json`, `server.js`, schema, seeding, every route, the insight engine |
-| Frontend Lead | Claude Sonnet | medium | `public/index.html`, `public/style.css`, `public/app.js` |
-| QA Lead | Claude Sonnet | medium | the six acceptance checks, the browser and curl runs, the fixes they forced |
-| Backend fix worker | Claude Sonnet | low | the three server side defects the orchestrator review found |
-| Frontend fix worker | Claude Sonnet | low | the insight figure, the phone KPI grid |
-| Frontend polish worker | Claude Sonnet | low | the city card stretch, the repeated caption |
+## 2. Kimse tek satır yazmadan yayımlanan sözleşme
 
-The two leads ran at the same time, in separate sessions, on separate ports. They never read
-each other's files. The only thing they shared was the contract below.
+Dosyalar, tam olarak bunlar:
 
-## 3. The contract, published before any code
-
-**Port.** 3000 by default, `PORT=3001 node server.js` overrides it.
-
-**Files.** `package.json` (type module, `start` runs `node server.js`, deps `express` and
-`chart.js`), `server.js`, `public/index.html`, `public/style.css`, `public/app.js`,
-`data.sqlite` (created on first start, gitignored), plus this log, the README and
-`screenshots/`, which belong to the orchestrator.
-
-**Schema.** One table:
-
-```sql
-CREATE TABLE IF NOT EXISTS sales (
-  id INTEGER PRIMARY KEY, date TEXT, product TEXT, category TEXT,
-  qty INTEGER, unit_price REAL, city TEXT, revenue REAL
-);
+```
+data-dashboard/
+  package.json      "type": "module", start = node server.js, deps: express, chart.js
+  server.js         Express + node:sqlite (DatabaseSync), serves public/ and /api
+  public/index.html the shell: top bar, sidebar, four screens
+  public/style.css  one palette, one accent, two themes, responsive at 390px
+  public/app.js     one state object, all fetching, all rendering
+  data.sqlite       created and seeded on first start, gitignored, delete to reset
+  README.md         product name, the two commands, features, team, Verified checklist
+  BUILD-LOG.md      this file
+  screenshots/      1440x900 and 390x844 PNGs
 ```
 
-One CSV row is one order, so `orders = COUNT(*)`, `units = SUM(qty)`,
-`revenue = SUM(revenue)`, `avgBasket = revenue / orders`.
+Port: varsayılan `3000`, `PORT` bunu değiştiriyor, `0.0.0.0` adresine bağlanıyor.
 
-**Seeding.** First start only. CSV lookup ladder resolved from the folder holding `server.js`,
-first hit wins: `data/sales-data.csv`, `../data/sales-data.csv`, `../../data/sales-data.csv`.
-Inside this repo the third rung finds `data/sales-data.csv` at the repo root (120 rows, source
-`csv`). From an empty folder nothing matches and the server generates 120 realistic rows over
-the last 90 days (source `generated`). Deleting `data.sqlite` and restarting reseeds.
+Her `GET /api/*` yolu aynı dört isteğe bağlı filtre parametresini kabul ediyor, böylece tek bir
+filtre durumu bütün bileşenleri sürüyor: `from` (YYYY-MM-DD), `to`, `category`, `city`.
 
-**Shared filter parameters** on every data route, all optional, empty means not set:
-`from` and `to` (`YYYY-MM-DD`, inclusive), `category`, `city`. A malformed or unknown value is
-ignored rather than thrown: every route answers HTTP 200 with JSON in every case.
-
-**Routes and shapes.**
-
-| Route | Returns |
+| Yol | Döndürdüğü |
 |---|---|
-| `GET /api/meta` | `{ categories[], cities[], dateRange:{min,max}, rowCount, source }` |
-| `GET /api/kpis` | `{ range:{from,to,prevFrom,prevTo,days}, current:{revenue,units,orders,avgBasket}, previous:{...}, change:{...} }`, change in percent or `null` |
-| `GET /api/timeline` | `{ granularity, points:[{bucket,label,revenue,units,orders}] }`, granularity `day` / `week` / `month` |
-| `GET /api/categories` | `{ total, items:[{category,revenue,units,orders,share}] }` |
-| `GET /api/cities` | `{ items:[{city,revenue,units,orders}] }`, revenue descending |
-| `GET /api/products` | `{ total, items:[{product,category,revenue,units,orders,share}] }` |
-| `GET /api/insights` | `{ insights:[{id,kind,title,text,value,valueLabel}] }`, 3 to 5 items, each with a real number |
+| `GET /api/health` | `{ ok, rows, source }` |
+| `GET /api/meta` | `{ rows, source, importedAt, dateRange: { min, max }, categories[], cities[] }` |
+| `GET /api/kpis` | `{ current: { revenue, units, orders, avgBasket }, previous: {...}, change: { revenue, units, orders, avgBasket } }`; önceki dönem yoksa bir `change` değeri `null` oluyor |
+| `GET /api/timeline?granularity=day\|week\|month` | `{ granularity, points: [{ bucket, revenue, units, orders }] }` |
+| `GET /api/categories` | `{ items: [{ category, revenue, units, orders, share }] }` |
+| `GET /api/products` | `{ items: [{ product, category, revenue, units, orders, share }] }` |
+| `GET /api/cities` | `{ items: [{ city, revenue, units, orders, share }] }` |
+| `GET /api/insights` | `{ items: [{ id, tone, title, text, value, valueType }] }`, 3 ile 5 arası madde, `valueType` değeri `money`, `percent` ya da `count` |
+| `POST /api/import` | gövde JSON olarak `{ csv }` ya da ham `text/csv` içerik, `{ ok, rows, dateRange }` veya `{ ok: false, error }` döndürüyor |
 
-**Static.** `express.static('public')` at `/`, and Chart.js from `node_modules` at
-`/vendor/chart.umd.js`. No CDN: the machine may be offline at show time.
+Para hattın üzerinden yalnızca TL olarak geçiyor. Kur çevrimi bir gösterim meselesi ve tek bir
+sabit kur tablosu üzerinden ön uçta yaşıyor. Uygulamanın iki yarısının bir sayının ne anlama
+geldiği konusunda anlaşmazlığa düşmesini engelleyen şey tam da bu tek karar.
 
-**Division of ports while the team worked.** 3000 was reserved for QA and the orchestrator, the
-Backend Lead smoke tested on 3011, the Frontend Lead ran a throwaway mock API on 3012 so it
-could build and screenshot the UI before `server.js` existed.
+İlk açılıştaki veri: sunucu `server.js` dosyasının yanında `data/sales-data.csv`,
+`../data/sales-data.csv`, `../../data/sales-data.csv` ve `../../../data/sales-data.csv` yollarına
+bakıyor, bulduğu ilkini içeri alıyor, hiçbirini bulamazsa aynı sütunlarla 120 satır üretiyor.
+Yani aynı `server.js` hem boş bir klasörde hem de bu deponun içinde çalışıyor.
 
-## 4. What QA ran
+## 3. Takım ve kimin neyi üstlendiği
 
-The QA Lead started the real server on port 3000 and turned the six acceptance items into
-checks, in a headless browser driven through CDP and with curl:
+| Rol | Sorumlu olduğu | Teslim ettiği |
+|---|---|---|
+| Backend Lideri | `server.js`, `package.json` | Şema ve ilk veri, yedeğinde belirlenimci 120 satırlık üretici olan dört yollu CSV araması, ortak filtre kurucusu, sekiz okuma ucu, önceki dönem karşılaştırması, içgörü motoru, başlık doğrulaması yapan içeri alma ucu |
+| Frontend Lideri | `public/index.html`, `public/style.css`, `public/app.js` | Kabuk (üst çubuk, bildirim zili, profil rozeti, yan menü, dört ekran), farkları gösteren KPI kartları, hedef ilerleme çubuğu, gün/hafta/ay anahtarlı zaman çizelgesi, tıklanabilir halka, sıralanabilir ve aranabilir ürün tablosu, şehir çubuk grafiği, sıfırlama düğmeli filtre çubuğu, ayarlar ekranı, iskeletler ve boş durumlar, 390px yerleşimi |
+| QA Lideri | doğrulama | Altı kabul maddesinin gerçek testleri; çalışan bir sunucuya karşı curl ile ve başsız Chromium'da DevTools protokolü üzerinden yürütüldü, üstüne bir de temiz kurulum kontrolü |
 
-1. Clean start and a clean browser console, proved by listening to `console` and `pageerror`
-   and asserting an empty array, not by assuming.
-2. `curl -s localhost:3000/api/kpis`: revenue 445390, units 526, orders 120, all non zero.
-3. Last 7 days (`from=2026-08-22&to=2026-08-28`): the KPI card read ₺128.160,00 and the sum of
-   the product table rows was 128160, matching to the cent, and the browser showed every widget
-   change at once.
-4. Month granularity redraws with fewer points than day granularity (28 day points against 1
-   month point on this one month CSV).
-5. `curl -s localhost:3000/api/insights`: 4 insights, each carrying a numeric `value`.
-6. At 390px `document.documentElement.scrollWidth === clientWidth === 390`, measured in the
-   page, plus a 390x844 frame read back.
+Bu yapımın nasıl ilerlediğine dair not: reçete orkestratörden üç lideri Agent aracıyla başlatmasını
+istiyor. Bu yapım oturumunda Agent aracı kullanılamıyordu, bu yüzden orkestratör üç lider rolünü,
+aynı yayımlanmış sözleşmeye karşı, yukarıdaki sırayla üç ayrı geçişte kendisi yürüttü. Sözleşme,
+sorumluluk paylaşımı ve QA disiplini reçetenin anlattığının tıpatıp aynısı; eksik olan tek şey
+paralellik. Normal bir Claude Code oturumunda aynı prompt üç lideri gerçekten başlatıyor ve arka
+uçla ön uç aynı anda yazılıyor.
 
-It also checked the things nobody asks about until they break: `PORT=3001` really moves the
-port, deleting `data.sqlite` reseeds to 120 rows, there is no em dash character in the source,
-`index.html` pulls Chart.js from `/vendor` and not from a CDN, the donut click applies a
-category filter, and the product table search and column sorting work when actually driven in a
-browser.
+## 4. QA neleri çalıştırdı
 
-## 5. Bugs found and fixed
+Bütün kontroller, depodaki CSV yüklenmiş halde (120 satır, 2026-08-01 ile 2026-08-28 arası)
+`PORT=3000 node server.js` üzerinde koştu. Tarayıcı kontrolleri Chrome DevTools protokolü
+üzerinden yürütüldü, böylece konsol hataları varsayılmak yerine toplandı.
 
-| # | Found by | Bug | Fix |
+| # | Kabul maddesi | Nasıl kontrol edildi | Sonuç |
 |---|---|---|---|
-| 1 | Backend Lead, own smoke test | An invalid `from` or `to` (`?from=bad`) threw `Invalid time value` and returned HTTP 500, breaking the contract's "always 200" rule | `isValidDateStr` guard; invalid dates are ignored and the request falls back to the full range |
-| 2 | QA Lead | Every user facing string in `public/` was written without Turkish characters (`sü` and `ı` and `ğ` missing throughout), while `server.js` had them | All labels, headings, buttons, placeholders and empty states rewritten with proper Turkish characters |
-| 3 | QA Lead | On first load the date inputs were empty, so the full range was used, so the previous period was empty and all four KPI changes came back `null`: the dashboard opened with four dashes | First load defaults to the last 14 days of `/api/meta` `dateRange`, so it opens with real percent changes and the range is visible in the inputs |
-| 4 | QA Lead | With `change` null the cards showed a bare `-` with no explanation | Each card now carries a muted "önceki dönem verisi yok" line in that state |
-| 5 | QA Lead | At month granularity the single point was invisible because `pointRadius` was 0 | Radius rises to 5 when a series has one point or fewer |
-| 6 | Orchestrator review | Week labels were wrong across a month boundary: the week of Monday 2026-07-27 read "27-2 Tem", which says 27 to 2 of July | Cross month weeks name both months ("27 Tem - 2 Ağu 2026"), weeks inside one month keep the short form ("3-9 Ağu") |
-| 7 | Orchestrator review | Insight text and `valueLabel` used "35.080,00 TL" and wrote percentages with a decimal point ("yüzde 61.9") | All money goes through one helper and carries ₺, all percentages use the Turkish comma ("yüzde 61,9") |
-| 8 | Orchestrator review | Narrow filters (`category=Food&city=Antalya` over three days, or an unknown category) returned a single insight, below the contract's minimum of 3 | Thin and empty result sets now produce three honest observations with `value: 0` |
-| 9 | Orchestrator review | The insight card printed its `valueLabel` as a bare paragraph, so a lone number hung under each card | The figure became an accent colored chip tied to its sentence |
-| 10 | Orchestrator review | At 390px each KPI card took a full row, so a phone showed one and a half cards before the fold | Two by two KPI grid under 460px |
-| 11 | Orchestrator review | The city chart card stretched to the height of the taller insight panel, leaving a third of it blank | The row no longer stretches and the chart fills its card |
-| 12 | Orchestrator review | The same "DEĞER" caption repeated under all five insight figures | Caption dropped, the accent figure stays |
+| 1 | Temiz başlangıç, gerçek veri, konsolda hata yok, yan menü dört ekrana ulaşıyor | `GET /` 200 döndü, sayfa başsız Chromium'da açıldı ve her KPI değeri, grafik tuvali ve içgörü canlı DOM'dan okundu, konsol ve istisna kanalları kaydedildi, dört menü öğesine de tıklandı | geçti, 0 konsol hatası, başlıklar Genel bakış, Ürünler, Şehirler, Ayarlar olarak geri geldi |
+| 2 | `curl -s localhost:3000/api/kpis` sıfırdan farklı ciro, adet ve sipariş döndürüyor | curl ve bir JSON doğrulaması | geçti, ciro 445390, adet 526, sipariş 120 |
+| 3 | Son 7 gün bütün bileşenleri aynı anda değiştiriyor ve tablo toplamı ciro kartıyla uyuyor | Tarayıcıda dönem seçimi "Son 7 gün" yapıldı, sonra KPI, halka göstergesi, şehir satırları ve ürün tablosu yeniden okundu | geçti, ciro 445.390'dan 128.160'a indi, ürün tablosunun toplamı tam olarak 128160 çıktı, sıfırlama düğmesi belirdi |
+| 4 | Tema ve para birimi uygulamayı yeniden boyuyor, yenileme ikisini de koruyor, hedef çubuğu oynatıyor | Tarayıcıda tema açık, para birimi USD yapıldı, hesaplanan gövde arka planı ve her para rakamı yeniden okundu, sayfa aynı profilde yenilendi, hedef yükseltilip düşürüldü | geçti, arka plan rgb(16,19,25) renginden rgb(244,242,238) rengine geçti, KPI $10.734 ve içgörü değeri $845 oldu, yenilemeden sonra localStorage `{"theme":"light","currency":"USD","target":100000}` tutuyordu, çubuk 49.5% (kil) değerinden 100% (yeşil) değerine gitti |
+| 5 | `curl -s localhost:3000/api/insights` her biri bir sayı taşıyan 3 ile 5 arası içgörü döndürüyor | curl ve hem sayıya hem de her maddenin `value` alanına bakan bir JSON doğrulaması | geçti, 5 içgörü, hepsi sayısal bir değer taşıyordu |
+| 6 | 390px'te hiçbir şey yana taşmıyor, yan menü toplanıyor, bileşenler alt alta diziliyor | Görüntü alanı 390x844 olarak taklit edildi ve dört ekranda da `scrollWidth - clientWidth` ölçüldü | geçti, her ekranda taşma 0, yan menü bir satır içinde `position: fixed` olarak hesaplandı (alt sekme çubuğu), KPI ızgarası iki sütuna düştü |
 
-## 6. Integration decisions the orchestrator made
+Listenin dışındaki ek kontroller: `PORT=3999 node server.js` 3999 portunda 200 cevapladı;
+`POST /api/import` iki satırlık bir CSV'yi kabul edip veri setinin yerine koydu; başlığı yanlış
+olan bir CSV `{"ok":false,"error":"CSV header must contain date,product,category,qty,unit_price,city"}`
+ile geri çevrildi; hiçbir satırın uymadığı bir tarih aralığı zaman çizelgesinde, halkada ve içgörü
+panelinde boş kutular yerine Türkçe boş durum mesajları üretti; `data.sqlite` silinip yeniden
+başlatıldığında depodaki CSV'den 120 satır tekrar yüklendi.
 
-- **The repo CSV spans one month** (2026-08-01 to 2026-08-28), so the period before the full
-  range is empty by definition. Rather than fake a comparison, the dashboard opens on the last
-  14 days, where the previous 14 days are real, and "filtreleri temizle" widens to the full
-  range where the cards say plainly that there is no previous period. Both states are honest and
-  both look deliberate.
-- **The CSV lookup ladder got a third rung.** The prompt names `data/sales-data.csv` and
-  `../data/sales-data.csv`. From an empty folder created next to the repo those two are right,
-  but this proof lives two levels down in `showcase/data-dashboard/`, so `../../` was added.
-  Both paths the prompt names are still checked first.
-- **`package-lock.json` was kept.** It is not in the contract's file list, but it makes the
-  pre training `npm install` reproducible, which matters more than a tidy listing.
+## 5. QA'nın bulduğu hatalar ve düzeltmeleri
 
-## 7. Verification the orchestrator ran last
+1. **İlk açılışta her KPI "+100%" diyordu.** Önceki dönem karşılaştırması boş bir önceki pencereyi
+   sıfır sayıp oradan bölüyordu, yani uygulamayı tam tarih aralığında açmak dört kartın hepsinde
+   sahte bir yüzde 100 artış gösteriyordu. `percentChange` artık karşılaştıracak bir şey yoksa
+   `null` döndürüyor ve kart, doğru olmayan bir sayı yerine sessiz bir "önceki dönem yok" rozeti
+   gösteriyor.
+2. **Şehirler çubuk grafiği 0x0 çizildi.** Chart.js tuvalini o ekran hâlâ `display: none` iken
+   ölçtü, böylece grafik boyutsuz kuruldu ve ekran değişince de görünmez kaldı. Ekran değişimleri
+   artık bir sonraki animasyon karesinde grafikleri yeniden boyutlandırıyor.
+3. **`hidden` esnek kutularda hiçbir işe yaramıyordu.** Filtre çubuğu `display: flex`, bu da
+   tarayıcının `[hidden] { display: none }` kuralını yeniyor; dolayısıyla filtreleyecek bir şeyi
+   olmayan Ayarlar ekranında bile ekranda kalıyordu. Tek bir `[hidden] { display: none !important; }`
+   kuralı, açılıp kapanan her öğe için bunu çözdü.
+4. **Satır başına duran ciro çubuğu başıboş bir tire gibi görünüyordu.** Sağa yaslı bir hücrenin
+   sol kenarına sabitlenmişti, bu yüzden kendi sayısından uzağa kaçıyordu. Artık sağa sabitlenmiş
+   durumda ve değerle birlikte uzayan bir alt çizgi gibi okunuyor.
+5. **Ürün tablosu telefonda kırpılıyordu.** 390px'te altı sütun para sütununu ekranın kenarının
+   altına itiyordu. Telefonda en az işe yarayan sütun olan kategori etiketi 900px'in altında
+   gizleniyor ve hücre boşlukları daralıyor.
 
-`node_modules` deleted, `npm install --no-audit --no-fund` from scratch, `PORT=3000 node
-server.js`, `curl -s -o /dev/null -w '%{http_code}' http://localhost:3000/` returned 200, an
-`/api` route answered JSON, the server was killed by process group and port 3000 was confirmed
-free with `ss -ltnp`. `node_modules` was left installed so the fallback starts in seconds.
+## 6. Bitti sayılma ölçütü
+
+`npm install`, sonra `node server.js`, sonra http://localhost:3000. Altı kabul maddesinin hepsi
+yeşil (yukarıdaki tabloya ve `README.md` içindeki Doğrulandı listesine bak). Son temiz kontrol:
+sunucu kapatıldı, `node_modules` silindi, `npm install --no-audit --no-fund` sıfırdan yeniden
+çalıştırıldı, `PORT=3000 node server.js` başlatıldı, `GET /` 200 ve `GET /api/kpis` JSON
+cevapladı, sunucu kapatıldı ve 3000 portunun boşaldığı doğrulandı.
+
+## 7. Bağımsız doğrulama geçişi
+
+Ayrı bir gözden geçiren, bütün kontrol listesini temiz bir `node_modules` üzerinde baştan koşturdu,
+dört ekranı DevTools protokolü üzerinden 1440x900 ve 390x844 boyutlarında sürdü ve API'ye bozuk
+girdi gönderdi. Yukarıdaki tablodaki her şey aynen tekrarlandı. O geçişte üç şey onarıldı:
+
+1. **Bozuk tarihler 500 ve bir yığın izi ile cevaplanıyordu.** `GET /api/kpis?from=abc` isteği
+   önceki dönem yürüyüşü üzerinden `addDays` fonksiyonuna ulaşıp `RangeError: Invalid time value`
+   fırlatıyordu, Express de mutlak dosya yolları taşıyan varsayılan HTML hata sayfasıyla cevap
+   veriyordu. Sorgudaki tarihler artık yalnızca `YYYY-MM-DD` biçiminde kabul ediliyor, başka her
+   şey eleniyor.
+2. **Bozuk bir JSON gövdesi de aynısını yapıyordu.** Gövdesi yarım kalmış bir `POST /api/import`
+   isteği HTML bir yığın izi döndürüyordu. Artık bir JSON hata işleyicisi
+   `{"ok":false,"error":"Invalid request"}` cevabını veriyor.
+3. **Ürün tablosu 390px'te hâlâ yana kaydırma istiyordu.** Beş sütun, 328px'lik bir kartın içinde
+   408px ölçüldü, bu yüzden sipariş sayısı rakamın ortasından kesiliyordu. 560px'in altında
+   `Sipariş` sütunu da gizleniyor ve kalan dört sütun tam oturuyor. `screenshots/products-phone.png`
+   yeniden çekildi.

@@ -1,23 +1,28 @@
-# After the training: your first week
+# Eğitimden sonra: ilk haftanız
 
-Day 1 (tonight, 20 minutes): install Claude Code on YOUR machine (`docs/setup/`), clone this
-repo, redo `exercises/stage-2-hello/` and then `exercises/stage-3-context/`. Feel the
-CLAUDE.md difference once more, on your own screen.
+1. gün (bu akşam, 20 dakika): Claude Code'u KENDİ bilgisayarınıza kurun
+(`exercises/01-install/`, tam rehberler `docs/setup/` içinde), bu depoyu klonlayın,
+`exercises/02-first-launch/` ve ardından `exercises/04-claude-md/` adımlarını tekrarlayın.
+CLAUDE.md'nin yarattığı farkı bir kez de kendi ekranınızda hissedin.
 
-Day 2-3: pick the most boring 15-minute task you did this week. Describe it to Claude Code
-in your own words. Iterate until the output is genuinely usable. Save the working prompt
-into a file.
+2-3. gün: bu hafta yaptığınız en sıkıcı 15 dakikalık işi seçin. Claude Code'a kendi
+kelimelerinizle anlatın. Çıktı gerçekten işinize yarayana kadar üzerinde gidip gelin.
+İşe yarayan promptu bir dosyaya kaydedin.
 
-Day 4-5: turn that prompt into a skill (`skills/README.md` shows how, with four finished
-examples to copy from). Now it is a `/command`.
+4-5. gün: o promptu bir skill'e dönüştürün (`exercises/05-skill/` adım adım anlatıyor,
+`skills/README.md` kopyalayabileceğiniz dört bitmiş örneği barındırıyor). Artık bir
+`/command` oldu.
 
-Weekend: paste ONE mega-prompt from `prompts/apps/` and watch a whole app get born; run it
-with `npm install` then `node server.js` and open http://localhost:3000; then change one
-feature with a follow-up sentence. Show it to someone.
+Hafta sonu (`exercises/07-build/`): `prompts/apps/` içinden BİR mega-promptu yapıştırın ve
+koca bir uygulamanın doğuşunu izleyin. Üç tanesi bekliyor: Satış Analitik Paneli
+(`data-dashboard`), Neon Breaker (`neon-breaker`) ve Salon Sohbeti (`live-chat`). Oylamada
+seçilMEyeni tercih edin, `npm install` sonra `node server.js` ile çalıştırın ve
+http://localhost:3000 adresini açın; sonra bir cümlelik istekle bir özelliği değiştirin.
+Birine gösterin.
 
-The trap to avoid: trying to automate your WHOLE job in week one. The people who get real
-value add one small piece at a time and write their rules into `CLAUDE.md` as they learn
-them. Sessions forget; files do not.
+Kaçınmanız gereken tuzak: daha ilk haftada işinizin TAMAMINI otomatikleştirmeye kalkmak.
+Gerçekten değer görenler her seferinde küçük bir parça ekliyor ve öğrendikleri kuralları
+`CLAUDE.md` dosyasına yazıyor. Oturumlar unutur, dosyalar unutmaz.
 
-Stuck? The answer is usually better CONTEXT, not a better model: say what you want, what
-you have, and what "good" looks like.
+Takıldınız mı? Cevap genelde daha iyi bir modelde değil, daha iyi CONTEXT'te: ne
+istediğinizi, elinizde ne olduğunu ve "iyi" sonucun neye benzediğini söyleyin.

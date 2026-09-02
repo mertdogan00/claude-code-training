@@ -1,27 +1,27 @@
-# Official resources
+# Resmi kaynaklar
 
-<!-- Links verified 2026-08-30 during deck production; re-check before the event. -->
+<!-- Bağlantılar 2026-08-30'da, sunum hazırlanırken doğrulandı; etkinlikten önce bir daha bak. -->
 
 ## Claude Code
 
-- Docs: https://code.claude.com/docs
-- Pricing (which plans include Claude Code): https://claude.com/pricing
-- Get Claude: https://claude.ai
+- Dokümanlar: https://code.claude.com/docs
+- Fiyatlar (hangi planlar Claude Code içeriyor): https://claude.com/pricing
+- Claude'a ulaşın: https://claude.ai
 
-## Extending
+## Genişletme
 
-- Official plugin marketplace (browse on the web): https://claude.com/plugins
-- Inside Claude Code: `/plugin` (the official marketplace is pre-added on first run)
-- Community marketplace: `/plugin marketplace add anthropics/claude-plugins-community`
-- MCP (Model Context Protocol) registry and spec: https://modelcontextprotocol.io
-- Cloudflare MCP servers (used on stage): https://developers.cloudflare.com/agents/model-context-protocol/
-- Keyless MCP quick adds (Cloudflare docs, Context7, DeepWiki): `exercises/stage-4-extend/mcp.md`
+- Resmi plugin marketi (web üzerinden gezmek için): https://claude.com/plugins
+- Claude Code içinden: `/plugin` (resmi market ilk açılışta zaten ekli gelir)
+- Topluluk marketi: `/plugin marketplace add anthropics/claude-plugins-community`
+- MCP (Model Context Protocol) kayıt defteri ve şartnamesi: https://modelcontextprotocol.io
+- Cloudflare MCP sunucuları (sahnede kullanılanlar): https://developers.cloudflare.com/agents/model-context-protocol/
+- Anahtar istemeyen hızlı MCP eklemeleri (Cloudflare dokümanları, Context7, DeepWiki): `exercises/06-plugin-mcp/mcp.md`
 
-## Models
+## Modeller
 
-- Claude model overview: https://docs.claude.com/en/docs/about-claude/models
+- Claude model özeti: https://docs.claude.com/en/docs/about-claude/models
 
-## Keep learning
+## Öğrenmeye devam
 
-- Anthropic news: https://www.anthropic.com/news
-- This repo's `after-training.md`: your first week's plan
+- Anthropic haberleri: https://www.anthropic.com/news
+- Bu deponun `after-training.md` dosyası: ilk haftanızın planı

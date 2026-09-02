@@ -1,32 +1,33 @@
-# Prompt library
+# Prompt kitaplığı
 
-Paste these as-is; adjust the bracketed parts. Claude Code is fluent in Turkish too: on
-stage the answers arrive in Turkish because the project's `CLAUDE.md` says so, even when the
-prompt is English. Say what you want in whichever language you think best in.
+Bunları olduğu gibi yapıştır, köşeli parantezli yerleri kendine göre değiştir. Claude Code
+Türkçeyi de akıcı konuşuyor: sahnede cevaplar Türkçe geliyor, çünkü projenin `CLAUDE.md`
+dosyası öyle diyor; prompt İngilizce olsa bile. Sen derdini hangi dilde daha rahat
+anlatıyorsan onu kullan.
 
-## Understanding a project
+## Bir projeyi anlamak
 
-> Explore the files in this folder and summarize in three sentences what this project does.
+> Bu klasördeki dosyaları gez ve bu projenin ne yaptığını üç cümleyle özetle.
 
-## Starting something
+## Bir şeye başlamak
 
-> Build a one-page modern site about [topic]: dark theme, one big headline, three cards.
-> Before creating any file, state in one sentence what you are about to create and why.
+> [konu] hakkında tek sayfalık modern bir site kur: koyu tema, iri bir başlık, üç kart.
+> Herhangi bir dosya oluşturmadan önce ne oluşturacağını ve neden oluşturduğunu tek cümleyle söyle.
 
-## Fixing something
+## Bir şeyi düzeltmek
 
-> I am getting this error: [paste the error]. Explain the cause in plain language first,
-> then fix it.
+> Şöyle bir hata alıyorum: [hatayı yapıştır]. Önce sebebini sade bir dille anlat,
+> sonra düzelt.
 
-## Weak vs strong
+## Zayıf ve güçlü
 
-✗ "Make a website"
-✓ "Build a one-page landing site with Node built-ins only: dark theme, hero section, three
-feature cards, one contact button. It must look right on a phone too."
+✗ "Bir web sitesi yap"
+✓ "Sadece Node'un kendi araçlarıyla tek sayfalık bir tanıtım sitesi kur: koyu tema, geniş bir
+açılış bölümü, üç özellik kartı, bir iletişim düğmesi. Telefonda da düzgün görünsün."
 
-The difference is not magic words: it is CONTEXT and CONSTRAINTS.
+Aradaki fark sihirli kelimeler değil: BAĞLAM ve SINIRLAR.
 
-## Mega-prompts (application recipes)
+## Mega promptlar (uygulama reçeteleri)
 
-Long, team-role recipes that give birth to complete applications in ONE shot: in the
-[apps/](apps/) folder, with a table. The training's finale comes from there.
+Tek seferde eksiksiz uygulamalar doğuran, uzun ve takım rolleriyle yazılmış reçeteler:
+[apps/](apps/) klasöründe, tablosuyla birlikte duruyor. Eğitimin finali oradan çıkıyor.

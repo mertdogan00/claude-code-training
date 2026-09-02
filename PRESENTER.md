@@ -1,85 +1,115 @@
-# Presenter flow: which file, which command, at which moment
+# Sunum akışı: hangi dosya, hangi komut, hangi anda
 
-The stage script. Every UYGULAMA slide in the deck (v10, 28 slides) has a row here: the slide
-tells the room WHAT is happening, this file tells the presenter exactly WHERE to go and WHAT
-to type. Deck moments below are named with their slide number and title.
+Sahne senaryosu bu. Yedi tane elle yapılan uygulama, `exercises/` altında yedi klasör, aşağıda
+her birine bir satır. Slayt salona NE olduğunu anlatır; bu dosya sana NEREYE gideceğini söyler.
+Kural her seferinde aynı: **klasörün README'sini aç, bir seçenek seç, bloğu yapıştır.** Sahnede
+hiçbir şey ezberden yazılmaz ve her klasörün sonunda, ağ ya da bilgisayar seninle anlaşamazsa
+diye bir "Olmazsa göster" satırı vardır.
 
-## Before doors
+## Kapılar açılmadan önce
 
 ```bash
-git -C claude-code-training pull      # the repo on stage is the repo on GitHub
-node -v                               # must be v24 or newer
+git -C claude-code-training pull      # sahnedeki depo, GitHub'daki deponun ta kendisi
+node -v                               # v24 ya da daha yenisi olmalı
 cd claude-code-training
-cd showcase/data-dashboard && npm install
-cd ../neon-breaker      && npm install
-cd ../qr-menu           && npm install
-cd ../..                              # back at the repo root
+ls showcase                           # bu akşam hangi yedekler gerçekten elinde
+(cd showcase/data-dashboard && npm install)
+(cd showcase/neon-breaker   && npm install)
+(cd showcase/live-chat      && npm install)   # klasör yukarıdaki listede yoksa bu satırı atla
 ```
 
-Then: terminal font size up (the back row has to read it), phone on the SAME network as the
-laptop for the remote-control demo, and one browser window already open on
-`http://localhost:3000` so the tab is ready.
+Her kurulum kendi alt kabuğunda çalışıyor, yani henüz olmayan bir klasör sadece o satırı
+düşürür; seni repo kökünde bırakır, geri kalanı bozmaz. `ls showcase` neyi yazmadıysa bu akşam
+onun yedeği yok demektir: `live-chat` eksikse ya oylamadan **C · Salon Sohbeti**'ni çıkar ya da
+listede bırak ama sahnede tek yolunun canlı kurulum olduğunu bilerek bırak.
 
-## Stop 1 · Big Picture (slides 1 to 7)
+Sonra: terminal yazı boyutunu büyüt (arka sıra da okuyabilmeli), bilgisayar ve iki telefon aynı
+wifi'da olsun, güvenlik duvarı 3000 portuna izin versin (hem telefondan kumanda gösterisi hem
+Salon Sohbeti'nin katılım QR'ı buna muhtaç) ve bir tarayıcı penceresi `http://localhost:3000`
+adresinde açık dursun ki sekme hazır olsun.
 
-No hands-on. Talk only. The one thing to have ready: the roadmap slide (2 · Bu akşamın yol
-haritası) is where you promise the five stops, and slide 3 (Elleri görelim) is the show of
-hands. Keep the terminal hidden until slide 10.
+## Yedi uygulama tek bakışta
 
-## Stop 2 · Setup (slides 8 to 13)
+| Rozet | Slayt | Klasör | Sahnede |
+|---|---|---|---|
+| **1/7** | 10 | `exercises/01-install/` | README'yi aç, seçenek seç (macOS / Windows / Linux), yapıştır |
+| **2/7** | 11 | `exercises/02-first-launch/` | README'yi aç, seçenek seç (A kafe notu / B satış CSV'si / C bu repo), yapıştır |
+| *bonus* | 13 | (klasör yok) | telefondan kumanda, `exercises/02-first-launch/README.md` içindeki bonus paragrafı |
+| **3/7** | 19 | `exercises/03-commands/` | README'yi aç, seçenek seç (A altılı / B hava atan iki komut / C kart), yapıştır |
+| **4/7** | 20 | `exercises/04-claude-md/` | README'yi aç, seçenek seç (A yemek planı / B tedarikçi maili / C satış raporu), yapıştır |
+| **5/7** | 23 | `exercises/05-skill/` | README'yi aç, seçenek seç (A pdf / B toplantı / C klasör / D sosyal medya), yapıştır |
+| **6/7** | 24 | `exercises/06-plugin-mcp/` | README'yi aç, seçenek seç (A playwright / B superpowers / C MCP), yapıştır |
+| **7/7** | 27 | `exercises/07-build/` | README'yi aç, salonun oyladığı seçeneği seç, yapıştır |
 
-Slides 8 and 9 (Terminal, dosya, yol; Komut, repo, Git ve GitHub) are talk only: the
-vocabulary lands before the terminal itself appears at slide 10.
+## Durak 1 · Büyük resim (slayt 1-7)
 
-| Deck moment | Do this |
-|---|---|
-| **10 · UYGULAMA · Kurulum: Node, Claude Code, giriş** | Open `docs/setup/macos.md`, `windows.md`, `linux.md` on screen, one after the other. Read the two lines that matter out loud: Node LTS from https://nodejs.org (macOS: `brew install node`, Windows: `winget install OpenJS.NodeJS.LTS`), then `npm install -g @anthropic-ai/claude-code` (native alternative: `curl -fsSL https://claude.ai/install.sh \| bash`). Verify live: `node -v`, then `claude --version`. Optional third line: `python3 --version`, and say it plainly, the skill scripts use it, Claude Code does not need it. The room installs along. |
-| **11 · UYGULAMA · İlk açılış: claude, /help, ilk cümle** | From the folder that HOLDS the clone (`cd ~` first if you are still inside `showcase`): `cd claude-code-training/exercises/stage-2-hello` → `claude`. On a fresh machine the browser opens for login: let the room watch that, it is the only account step of the night. Then `/help`, scroll it slowly. Then paste, verbatim: `Read notes.txt in this folder and tell me in Turkish, in three sentences, what this person wants to do with AI.` Let it open the file on its own. Then `/context` (point at the meter), then `/clear`. |
-| **13 · UYGULAMA · Telefondan bilgisayarımı çalıştırıyorum** | Phone: open the Claude app, connect to this machine, send one small task. Hold the phone up while the laptop moves. Nothing to prepare in the repo. |
+Elle yapılan bir şey yok. Sadece anlatım. Hazır olması gereken tek şey: yol haritası slaytı
+(2 · Bu akşamın yol haritası) beş durağın sözünü verdiğin yer, slayt 3 (Elleri görelim) ise el
+kaldırma anı. Terminali slayt 10'a kadar gizli tut.
 
-Between them, slide 12 (Ne kadara mal oluyor) is talk only; the terminal can stay on screen.
+## Durak 2 · Kurulum (slayt 8-13)
 
-## Stop 3 · Core Concepts (slides 14 to 20)
+Slayt 8 ve 9 (Terminal, dosya, yol; Komut, repo, Git ve GitHub) sadece anlatım: kelimeler
+yerine otursun, terminal slayt 10'da sahneye çıksın.
 
-| Deck moment | Do this |
-|---|---|
-| **19 · UYGULAMA · Aynı soru, iki cevap** | `cd exercises/stage-3-context` → `claude` → paste: `Create a one-week meal plan from the menu.txt file in this folder.` Show the plain answer. Now CREATE the memory file live, in the same session: `Save the rules in rules.md into this folder's CLAUDE.md.` (or leave the session and run `mv rules.md CLAUDE.md`). Open the new `CLAUDE.md` and read its three rules aloud. `/clear`. Paste the SAME sentence. The answer comes back as a table with a budget line. Say the sentence that lands: you changed a file, not the model. Reset for the next run with `mv CLAUDE.md rules.md`. |
-| **20 · UYGULAMA · Komut kartı ve hangi model** | Live-type in the open session: `/help`, `/context`, `/compact`, then `/model` (open the picker, name the ladder, close it without changing anything), then `/permissions`. The slide holds the 15 commands in three tiers; `commands.md` in the repo is the same card for people to take home. |
+| Slayt anı | Rozet | Klasör | Ne yapacaksın |
+|---|---|---|---|
+| **10 · UYGULAMA · Kurulum: Node, Claude Code, giriş** | **1/7** | `exercises/01-install/` | `exercises/01-install/README.md` dosyasını aç, sahnedeki bilgisayara uyan seçeneği seç (A macOS, B Windows, C Linux), onun 1. yol ya da 2. yol bloğunu yapıştır, sonra `node -v` ve `claude --version` doğrulama satırlarını canlı çalıştır. İsteğe bağlı `python3 --version` satırını açık açık söyle: skill betikleri onu kullanıyor, Claude Code'un ihtiyacı yok. Salon da beraber kuruyor. Yedek: projeksiyonda `docs/setup/macos.md`, `windows.md`, `linux.md`. |
+| **11 · UYGULAMA · İlk açılış: claude, /help, ilk cümle** | **2/7** | `exercises/02-first-launch/` | `exercises/02-first-launch/README.md` dosyasını aç, ilk iki satırı yapıştır (`cd exercises/02-first-launch`, sonra `claude`). Sıfır bir bilgisayarda giriş için tarayıcı açılır: bırak salon izlesin, gecenin tek hesap adımı bu. Sonra `/help`, yavaşça kaydırarak. Şimdi TEK bir ilk cümle seç ve olduğu gibi yapıştır: A `notes.txt` içindeki kafe notu, B repodaki CSV üzerinden satış sorusu (`data/sales-data.csv`, README'den `../../data/sales-data.csv` diye yapıştırılıyor), C `../../README.md` üzerinden kendini anlatan repo. `/context` ile kapat (göstergeyi işaret et) ve `/clear`. Yedek: `exercises/02-first-launch/expected/a.md`, `b.md`, `c.md`. |
+| **13 · UYGULAMA · Telefondan bilgisayarımı çalıştırıyorum** | *bonus, rozet yok* | `exercises/02-first-launch/` | Aynı README'nin en altındaki bonus paragrafı. Telefon: Claude uygulamasını aç, bu bilgisayara bağlan, küçük bir görev gönder. Bilgisayar iş yaparken telefonu havada tut. Repoda hazırlanacak bir şey yok. |
 
-Slides 14 to 18 (prompt, token, context, Markdown and CLAUDE.md, under the hood) are talk
-only, but keep the session from slide 11 alive: a `/context` on screen while you explain
-tokens is worth a paragraph of slides.
+Aralarındaki slayt 12 (Ne kadara mal oluyor) sadece anlatım; terminal ekranda kalabilir.
 
-## Stop 4 · Extending (slides 21 to 25)
+## Durak 3 · Temel kavramlar (slayt 14-20)
 
-Slide 21 is the break (Mola). Come back with the terminal at the repo root. Slide 22 (Skill, plugin, MCP, ajan) is talk only: name the four before you show two of them.
+Slayt 14-18 (prompt, token, context, Markdown ve CLAUDE.md, kaputun altı) sadece anlatım ama
+slayt 11'deki oturumu canlı tut: token'ları anlatırken ekranda duran bir `/context`, bir sayfa
+slayta bedel. Komutlar ÖNCE geliyor (19), önce/sonra egzersizi sonra (20), böylece `/clear`
+lazım olduğunda salon onu zaten biliyor.
 
-| Deck moment | Do this |
-|---|---|
-| **23 · UYGULAMA · Skill kur** | Repo root, inside Claude Code: `Install skills/pdf-summarizer into this project as a skill.` When it finishes, type `/` and find it in the list. Run `/pdf-summarizer` on any PDF in Downloads. The line to say: yesterday this was a prompt you kept re-typing, now it is a command and it brought its own script with it. |
-| **24 · UYGULAMA · Plugin ve MCP** | Plugin first: `/plugin` → Discover tab → pick whatever lands well tonight → install → type `/` again, the new commands are there. Then MCP, in the terminal: `claude mcp add --transport http cloudflare-docs https://docs.mcp.cloudflare.com/mcp` → start a new session → ask: `How do I set up a cron trigger for a Cloudflare Worker? Answer from the live docs.` → point at the tool calls as they run. Backups if the server or the network misbehaves: Context7 or DeepWiki, exact commands in `exercises/stage-4-extend/mcp.md`; the walkthroughs are `plugin.md` and `mcp.md` in the same folder. |
+| Slayt anı | Rozet | Klasör | Ne yapacaksın |
+|---|---|---|---|
+| **19 · UYGULAMA · Komut kartı ve hangi model** | **3/7** | `exercises/03-commands/` | `exercises/03-commands/README.md` dosyasını aç ve A seçeneğini sırayla işle: `/help`, `/context`, `/clear`, `/compact` özetleyecek bir şey bulsun diye tek kullanımlık bir soru, `/compact`, `/model` (seçiciyi aç, merdiveni anlat, hiçbir şeyi değiştirmeden kapat), `/permissions`. Her birinin README'de tek satırlık Türkçe karşılığı var, yüksek sesle oku. Sonra B seçeneği, hava atan iki satır: `/rewind` (dosyaları VE konuşmayı geri alan geri alma) ve `/resume` (geçen haftaki oturum context'iyle geri geliyor); ikisini de aç ve çıkarak göster. Yedek: `commands.md`, salonun eve götürdüğü kartın aynısı. |
+| **20 · UYGULAMA · Aynı soru, iki cevap** | **4/7** | `exercises/04-claude-md/` | `exercises/04-claude-md/README.md` dosyasını aç ve bir seçenek seç: A `a-meal-plan/`, B `b-supplier-email/`, C `c-sales-report/`. Akış üçünde de aynı: repo kökünden `cd exercises/04-claude-md/<option>` (`a-meal-plan`, `b-supplier-email` ya da `c-sales-report`), `claude`, soruyu yapıştır, sade cevabı göster, sonra hafıza dosyasını canlı oluştur: `rules.md içindeki kuralları bu klasörün CLAUDE.md dosyasına kaydet.` (ya da oturumdan çıkıp `mv rules.md CLAUDE.md`), yeni `CLAUDE.md` dosyasını aç ve üç kuralını yüksek sesle oku, `/clear`, AYNI soruyu yapıştır. Yerine oturan cümleyi söyle: sen modeli değil, bir dosyayı değiştirdin. `mv CLAUDE.md rules.md` ile eski haline döndür. Yedek: seçeneğin klasöründeki `expected/before.md` ve `expected/after.md`, yan yana. |
 
-Slide 25 (Ajanlar) is the bridge into Stop 5: say it out loud, the next thing you see is not
-one assistant, it is a team.
+## Durak 4 · Yetenek katmak (slayt 21-25)
 
-## Stop 5 · Live Build (slides 26 to 28)
+Slayt 21 mola. Terminali repo kökünde bırakıp dön. Slayt 22 (Skill, plugin, MCP, ajan) sadece
+anlatım: ikisini göstermeden önce dördünün adını koy.
 
-| Deck moment | Do this |
-|---|---|
-| **26 · Şimdi siz seçin: üç aday** | Read the three out loud: Satış Analitik Paneli (`data-dashboard`), Neon Breaker (`neon-breaker`), QR Menü (`qr-menu`). Hands up per option, count out loud, announce the winner. |
-| **27 · UYGULAMA · Reçete ve canlı kurulum** | Open `prompts/apps/<winner>.md` on screen and scroll it slowly: point at the team clause, the contract-first rule and the acceptance checklist. Then `mkdir demo && cd demo && claude`, paste everything between the two `---` lines, and type NOTHING else. While it builds, narrate the team: who got spawned, what each lead is doing, what each one returned. Ask the question from the recipe's stage note. When it finishes: `npm install`, then `node server.js`, open http://localhost:3000. Let the room ask for one change and type it as a single sentence. |
-| **27 · fallback lane** | If the live build drags or the network dies: `cd showcase/<winner>` → `node server.js` (its `npm install` was done before doors) → open http://localhost:3000 → then open that folder's `BUILD-LOG.md` and read who did what. Same prompt, finished result. |
-| **28 · Bu gece ne öğrendik, sorular** | Repo URL and the QR on screen. Point people at `after-training.md` for the first week and `exercises/stage-2-hello/` to redo tonight's first launch at home. |
+| Slayt anı | Rozet | Klasör | Ne yapacaksın |
+|---|---|---|---|
+| **23 · UYGULAMA · Skill kur** | **5/7** | `exercises/05-skill/` | `exercises/05-skill/README.md` dosyasını aç. Repo kökünden, Claude Code'un içinde kurulum cümlesini yapıştır: `skills/pdf-summarizer klasörünü bu projeye skill olarak kur.` `/` yaz ve listede bul. Sonra bir seçenek seç ve iki sütununu göster, yani her seferinde yeniden yazacağın uzun prompt ile tek komut: A `exercises/05-skill/samples/sample.pdf` üzerinde `/pdf-summarizer`, B `exercises/05-skill/samples/meeting.txt` üzerinde `/meeting-notes`, C bu repoda `/folder-report .`, D yapıştırılan bir duyuruda `/social-post`. Söylenecek cümle: dün bu, her defasında yeniden yazdığın bir promptu; bugün bir komut ve kendi betiğini de yanında getirdi. Yedek: `exercises/05-skill/expected/` içinde her skill için bir örnek çıktı var. |
+| **24 · UYGULAMA · Plugin ve MCP** | **6/7** | `exercises/06-plugin-mcp/` | `exercises/06-plugin-mcp/README.md` dosyasını aç. Öne çıkarılacak olan A seçeneği: `https://github.com/mertdogan00/claude-code-training adresinin ekran görüntüsünü al ve bu klasöre repo.png olarak kaydet.` diye sor ve dürüstçe başarısız olmasına izin ver (sayfayı çekip metnini okuyabilir, fotoğrafını çekemez), sonra `/plugin` → Discover → `playwright` → kur → YENİ oturum → aynı cümle → projeksiyonda tarayıcı açılıyor ve klasörde `repo.png` beliriyor, ardından `Şimdi exercises klasörüne tıkla ve içinde ne olduğunu söyle.` Salon ikincisini isterse B seçeneği: `superpowers`, öncesinde ve sonrasında `/` yazarak listenin gözle görülür şekilde büyümesini göster. C seçeneği MCP, terminalde: `claude mcp add --transport http cloudflare-docs https://docs.mcp.cloudflare.com/mcp`, yeni oturum, sonra sor: `Bir Cloudflare Worker için cron tetikleyicisi nasıl kurulur? Canlı dokümandan cevapla.` Aynı blokta yedekler: Context7 ve DeepWiki, kendi sorularıyla. Yedek: o klasördeki `plugin.md` ve `mcp.md`, anlatarak. |
 
-## Pocket answers
+Slayt 25 (Ajanlar) Durak 5'e geçiş köprüsü: yüksek sesle söyle, bundan sonra göreceğin tek bir
+asistan değil, bir takım.
 
-- **The live build fails, drags, or the wifi dies mid-build:** `cd showcase/<winner>` and run
-  `node server.js`, then show the app and its `BUILD-LOG.md`: "a team of agents built this
-  from that exact prompt, here is the result and here is who did what." All three candidates
-  are pre-built and tested under `showcase/`.
-- **Wifi dies during MCP:** show `exercises/stage-4-extend/mcp.md` and narrate it; the skill
-  and plugin demos work offline.
-- **The build stalls on a question it should not ask:** reply `continue as planned, no more
-  confirmations` and tighten the prompt file tomorrow.
-- **Someone asks "can it see my files?":** `/permissions` on screen is the honest answer.
-- **Port 3000 is busy:** `PORT=3001 node server.js`, and open http://localhost:3001.
+## Durak 5 · Canlı kurulum (slayt 26-28)
+
+| Slayt anı | Rozet | Klasör | Ne yapacaksın |
+|---|---|---|---|
+| **26 · Şimdi siz seçin: üç aday** | (oylama) | `exercises/07-build/` | Üçünü `exercises/07-build/README.md` dosyasından yüksek sesle oku: Satış Analitik Paneli (`data-dashboard`), Neon Breaker (`neon-breaker`), Salon Sohbeti (`live-chat`). Her seçenek için el kaldırt, sesli say, kazananı ilan et. |
+| **27 · UYGULAMA · Reçete ve canlı kurulum** | **7/7** | `exercises/07-build/` | Kazananın seçeneğini `exercises/07-build/README.md` içinde aç (A Satış Analitik Paneli `data-dashboard`, B Neon Breaker `neon-breaker`, C Salon Sohbeti `live-chat`), sonra `prompts/apps/<winner>.md` dosyasını ekranda aç ve yavaşça kaydır: takım maddesini, önce sözleşme kuralını ve kabul kontrol listesini işaret et. Sonra hâlâ repo kökündeyken `mkdir demo && cd demo && claude`, iki `---` satırı arasındaki her şeyi yapıştır ve BAŞKA hiçbir şey yazma. O kurarken takımı anlat: kim doğdu, her lider ne yapıyor, her biri ne getirdi. README'deki soruyu sor. Bittiğinde: `npm install`, sonra `node server.js`, http://localhost:3000 adresini aç. Salon Sohbeti kazandıysa şu sırayla göster: önce yan yana iki tarayıcı penceresi, birine yaz ve diğerine düştüğünü izle, ancak ondan sonra Katıl ekranını QR'ıyla projeksiyona ver ki wifi'daki iki telefon okutup merhaba desin. Salon bir değişiklik istesin, sen de tek cümle olarak yaz. |
+| **27 · yedek şerit** | **7/7** | `showcase/<winner>/` | Canlı kurulum uzarsa ya da ağ ölürse: `cd ~/claude-code-training/showcase/<winner>` (`demo/` içinden de çalışır) → `node server.js` (onun `npm install` işi kapılar açılmadan yapılmıştı) → http://localhost:3000 adresini aç → sonra o klasörün `BUILD-LOG.md` dosyasını aç ve kimin ne yaptığını oku. `showcase/live-chat/` şimdilik `BUILD-LOG.md` taşımıyor: Salon Sohbeti kazandıysa uygulamayı göster, günlük için `showcase/data-dashboard/BUILD-LOG.md` dosyasını aç. Aynı prompt, bitmiş sonuç. |
+| **28 · Bu gece ne öğrendik, sorular** | (kapanış) | `exercises/` | Ekranda repo adresi ve QR. İlk hafta için `after-training.md` dosyasını, akşamı evde tekrar etmek için de `exercises/` altındaki yedi numaralı klasörü göster; başlangıç `exercises/02-first-launch/`. |
+
+## Cepteki cevaplar
+
+- **Canlı kurulum patlarsa, uzarsa ya da wifi ortada ölürse:** `cd ~/claude-code-training/showcase/<winner>` ve
+  `node server.js` çalıştır, sonra uygulamayı ve `BUILD-LOG.md` dosyasını göster: "bir ajan takımı
+  bunu tam olarak o promptu okuyarak kurdu, işte sonucu ve işte kimin ne yaptığı." Hazır yedekler
+  `showcase/` altında duruyor; kapılar açılmadan çalıştırdığın `ls showcase` bu akşam gerçekten
+  hangilerinin elinde olduğunu söylüyor, yani listede görmediğin bir yedeğin sözünü asla verme.
+- **MCP sırasında wifi ölürse:** `exercises/06-plugin-mcp/mcp.md` dosyasını göster ve anlat; skill
+  ve plugin gösterileri çevrimdışı çalışır (plugin KURULUMU çalışmaz, o yüzden skill'i öne al).
+- **Canlı bir cevap yanlış görünürse:** o klasörün kendi yedeğini aç ve salon karşılaştırsın.
+  Canlı cevabın kendisi asıl mesele olduğu yerlerde hazır bir örnek çıktı bekliyor:
+  `exercises/02-first-launch/expected/`, `exercises/05-skill/expected/` ve
+  `exercises/04-claude-md/` içindeki her seçenek klasörünün kendi `expected/` klasörü; satış
+  rakamlarında bu aynı zamanda doğru cevap demek. Gerisi başka yerlere düşüyor: 1/7
+  `docs/setup/*.md`, 3/7 `commands.md`, 6/7 `plugin.md` ve `mcp.md`, 7/7 `showcase/<winner>/` ve
+  onun `BUILD-LOG.md` dosyası. Her klasörün kendi "Olmazsa göster" satırı da aynı şeyi söylüyor.
+- **Kurulum sormaması gereken bir soruda takılırsa:** `plana göre devam et, başka onay sorma` diye cevap ver, prompt dosyasını da yarın sıkılaştır.
+- **Biri "dosyalarımı görebiliyor mu?" diye sorarsa:** ekrandaki `/permissions` en dürüst cevap.
+- **3000 portu doluysa:** `PORT=3001 node server.js` ve http://localhost:3001 adresini aç.

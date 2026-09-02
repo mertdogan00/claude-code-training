@@ -1,47 +1,49 @@
-# Skills: four finished, daily-life examples
+# Skill'ler: günlük hayattan dört bitmiş örnek
 
-A skill is a folder: `SKILL.md` (the instructions) plus, when the job earns it, `scripts/`
-(executable helpers) and `references/` (templates and rules the skill reads). These four are
-complete and installable; each solves something you plausibly do every week.
+Bir skill aslında bir klasördür: içinde `SKILL.md` (yönergeler), iş gerektiriyorsa `scripts/`
+(çalıştırılabilir yardımcılar) ve `references/` (skill'in okuduğu şablonlar ve kurallar) bulunur.
+Aşağıdaki dördü tamamlanmış ve kurulmaya hazır; her biri muhtemelen her hafta karşına çıkan bir
+işi çözüyor.
 
-| Skill | Daily-life moment | Extras it bundles |
+| Skill | Günlük hayattan anı | Yanında getirdikleri |
 |---|---|---|
-| [pdf-summarizer](pdf-summarizer/) | a 40-page PDF lands in your inbox | `scripts/extract_text.py` |
-| [meeting-notes](meeting-notes/) | messy notes after a meeting | `references/template.md` |
-| [folder-report](folder-report/) | "what IS in this folder?" | `scripts/scan.py` |
-| [social-post](social-post/) | one announcement, three platforms | `scripts/check_limits.js`, `references/platform-notes.md` |
+| [pdf-summarizer](pdf-summarizer/) | gelen kutuna 40 sayfalık bir PDF düşer | `scripts/extract_text.py` |
+| [meeting-notes](meeting-notes/) | toplantı sonrası darmadağın notlar | `references/template.md` |
+| [folder-report](folder-report/) | "bu klasörde NE var ki?" | `scripts/scan.py` |
+| [social-post](social-post/) | tek duyuru, üç platform | `scripts/check_limits.js`, `references/platform-notes.md` |
 
-## Install one (pick ONE tonight and actually run it)
+## Birini kur (bu akşam BİR tanesini seç ve gerçekten çalıştır)
 
-**Into this project** (available when Claude Code runs in this repo): from the repo root,
-ask Claude Code in your own words, for example:
+**Bu projeye** (Claude Code bu depoda çalışırken kullanılabilir): depo kökünden Claude Code'a
+kendi cümlelerinle söyle, mesela şöyle:
 
-> Install skills/pdf-summarizer into this project as a skill.
+> skills/pdf-summarizer klasörünü bu projeye skill olarak kur.
 
-It copies the folder to `.claude/skills/`, and `/pdf-summarizer` appears in the `/` list.
+Klasörü `.claude/skills/` içine kopyalar ve `/pdf-summarizer` artık `/` listesinde görünür.
 
-**For yourself everywhere** (available in every project): copy the skill folder into your
-user skills directory instead:
+**Her yerde kendin için** (her projede kullanılabilir): skill klasörünü onun yerine kendi
+kullanıcı skill dizinine kopyala:
 
 ```bash
 mkdir -p ~/.claude/skills
 cp -r skills/pdf-summarizer ~/.claude/skills/
 ```
 
-Restart Claude Code (or run `/reload-plugins`), type `/`, and it is in the list.
+Claude Code'u yeniden başlat (ya da `/reload-plugins` çalıştır), `/` yaz, listede karşında.
 
-## Then use it
+## Sonra kullan
 
 - `/pdf-summarizer some-report.pdf`
-- `/meeting-notes` then paste your raw notes
-- `/folder-report ~/Downloads` (brace yourself)
-- `/social-post` then paste the announcement
+- `/meeting-notes` yaz, sonra ham notlarını yapıştır
+- `/folder-report ~/Downloads` (kendini hazırla)
+- `/social-post` yaz, sonra duyuru metnini yapıştır
 
-## Write your own
+## Kendi skill'ini yaz
 
-Start from the one closest to your need, rename the folder, rewrite `SKILL.md` in plain
-sentences: when to trigger, the steps, the output shape, what NOT to do. If a step is
-mechanical (walking folders, extracting text, counting characters), put it in `scripts/` and
-have the skill call it; instructions decide, scripts do the heavy lifting. Both engines from
-the deck are represented here: `scan.py` and `extract_text.py` are Python, `check_limits.js`
-is Node, and `meeting-notes` shows that a pure text-shaping skill needs no script at all.
+İhtiyacına en yakın olandan başla, klasörün adını değiştir, `SKILL.md` dosyasını sade
+cümlelerle yeniden yaz: ne zaman devreye girecek, adımlar neler, çıktı nasıl görünecek, neyi
+YAPMAYACAK. Bir adım mekanikse (klasörleri gezmek, metin çıkarmak, karakter saymak) onu
+`scripts/` içine koy ve skill'in çağırmasını sağla; yönergeler karar verir, script'ler ağır işi
+yapar. Sunumdaki iki motor da burada temsil ediliyor: `scan.py` ve `extract_text.py` Python,
+`check_limits.js` Node, `meeting-notes` ise sadece metin şekillendiren bir skill'in hiçbir
+script'e ihtiyaç duymadığını gösteriyor.

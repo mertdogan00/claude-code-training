@@ -1,27 +1,28 @@
-# Project memory (CLAUDE.md)
+# Proje hafızası (CLAUDE.md)
 
-<!-- TEACHING NOTE: Claude Code reads this file automatically on every request in this
-     project. Everything below is an INSTRUCTION to Claude, not documentation. This is the
-     "project-based memory" shown on stage: change a line here, and Claude's behavior in this
-     repo changes, permanently, without repeating yourself in every prompt. -->
+<!-- ÖĞRETİCİ NOT: Claude Code bu projede her istekte bu dosyayı kendiliğinden okur.
+     Aşağıdaki her satır dokümantasyon değil, Claude'a verilmiş bir TALİMATTIR. Sahnede
+     gösterilen "proje tabanlı hafıza" budur: buradaki bir satırı değiştirin, Claude'un bu
+     depodaki davranışı kalıcı olarak değişsin, her promptta kendinizi tekrar etmeyin. -->
 
-## Who you are working with
+## Kiminle çalışıyorsun
 
-The user may not be a developer. Explain what you are doing in plain Turkish, one step at a
-time, before you do it. Never assume they know what a command does.
+Kullanıcı geliştirici olmayabilir. Ne yaptığını sade bir Türkçeyle, adım adım ve yapmadan
+önce anlat. Bir komutun ne işe yaradığını bildiğini asla varsayma.
 
-## House rules
+## Ev kuralları
 
-- Answer in Turkish; write code comments in English.
-- Before creating files, say WHAT you will create and WHY, in one short sentence each (for a
-  team build, the contract you publish and BUILD-LOG.md count as that explanation).
-- Prefer the simplest thing that works; no frameworks unless asked (a mega-prompt that names a
-  stack IS the ask).
-- After finishing a task, show how to verify the result in one command.
+- Türkçe cevap ver; kod yorumlarını İngilizce yaz.
+- Dosya oluşturmadan önce NE oluşturacağını ve NEDEN oluşturduğunu birer kısa cümleyle söyle
+  (takım kurulumlarında yayımladığın sözleşme ile BUILD-LOG.md bu açıklamanın yerine geçer).
+- İşi gören en basit çözümü seç; istenmedikçe framework kullanma (bir yığını adıyla belirten
+  mega-prompt zaten o isteğin ta kendisidir).
+- Bir işi bitirdikten sonra sonucun tek komutla nasıl doğrulanacağını göster.
 
-## This repository
+## Bu depo
 
-This is a training workspace. Exercises live under `exercises/`, one folder per training
-stage; each has its own README with its goal. When the user asks about an exercise, read
-that folder's README for context; never run its steps or rename its files unless the user asks
-for it. In `exercises/stage-3-context`, do not read `rules.md` unless asked.
+Burası bir eğitim çalışma alanı. Egzersizler `exercises/` altında, her uygulama için bir
+tane olmak üzere yedi numaralı klasörde duruyor; her birinin kendi amacını anlatan bir
+README'si var. Kullanıcı bir egzersizi sorduğunda bağlam için o klasörün README'sini oku;
+kullanıcı istemedikçe adımlarını çalıştırma, dosyalarını yeniden adlandırma.
+`exercises/04-claude-md` içinde, istenmedikçe `rules.md` dosyasını okuma.

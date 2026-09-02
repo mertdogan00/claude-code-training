@@ -1,83 +1,92 @@
 # Satış Analitik Paneli
 
-A sales analytics dashboard over a 120 row CSV: four KPI cards with period over period change,
-a revenue timeline, a category donut, a city bar chart, a searchable product table, one filter
-bar that drives every widget, and an insight panel the server computes. Turkish interface,
-premium dark look, no build step.
+Bir CSV üzerinden çalışan satış analitik paneli: bir önceki döneme göre değişimi gösteren KPI
+kartları, grafikler, tüm ekranları aynı anda süren tek bir filtre çubuğu ve sunucunun hesapladığı
+bir içgörü paneli. Tek bir prompt'tan, bir ajan takımı tarafından yapıldı:
+[`../../prompts/apps/data-dashboard.md`](../../prompts/apps/data-dashboard.md) dosyası olduğu
+gibi yeni bir Claude Code oturumuna yapıştırıldı. Node 24 ya da daha yenisi, Express ve Node'un
+içinde hazır gelen `node:sqlite` modülü: derleme adımı yok, framework yok, TypeScript yok,
+derlenmesi gereken hiçbir şey yok.
 
-Built by a team of Claude Code sub agents from a single prompt:
-[`prompts/apps/data-dashboard.md`](../../prompts/apps/data-dashboard.md). The team at work,
-with the contract it agreed on before writing a line and every bug QA caught, is in
-[`BUILD-LOG.md`](BUILD-LOG.md).
-
-## Run it
+## Çalıştır
 
 ```bash
 npm install
-node server.js        # then open http://localhost:3000
+node server.js
 ```
 
-`PORT=3001 node server.js` moves it to another port. Node 24 or newer, because `server.js` uses
-the built in `node:sqlite` (on Node 22.x that module sits behind `--experimental-sqlite`).
-`data.sqlite` is created and seeded on the first start: inside this repo it imports
-`data/sales-data.csv` from the repo root, and from an empty folder it generates 120 realistic
-rows instead. Deleting `data.sqlite` resets the app.
+Sonra http://localhost:3000 adresini aç. `PORT=3001 node server.js` yazarsan port değişir.
+Veritabanı ilk açılışta oluşturulup dolduruluyor; uygulamayı sıfırlamak için `data.sqlite`
+dosyasını sil.
 
-## Screenshots
+Sunucu ilk açılışta depodaki `data/sales-data.csv` dosyasını (sütunlar:
+`date,product,category,qty,unit_price,city`) bulabilirse onu içeri alıyor, bulamazsa aynı
+sütunlarla 120 satırlık gerçekçi veri üretiyor. Yani uygulama boş bir klasörde de çalışıyor.
 
-| Desktop, 1440x900 | Phone, 390x844 |
+## Ekran görüntüleri
+
+| Masaüstü, 1440x900 | Telefon, 390x844 |
 |---|---|
-| ![Desktop](screenshots/dashboard-desktop-1440x900.png) | ![Phone](screenshots/dashboard-phone-390x844.png) |
+| ![Genel bakış](screenshots/overview-desktop.png) | ![Genel bakış telefonda](screenshots/overview-phone.png) |
+| ![Ürünler](screenshots/products-desktop.png) | ![Ürünler telefonda](screenshots/products-phone.png) |
+| ![Şehirler](screenshots/cities-desktop.png) | ![Şehirler telefonda](screenshots/cities-phone.png) |
+| ![Ayarlar](screenshots/settings-desktop.png) | ![Ayarlar telefonda](screenshots/settings-phone.png) |
 
-The whole page at 1440 width: [`dashboard-desktop-full-1440x1800.png`](screenshots/dashboard-desktop-full-1440x1800.png)
+## Özellikler
 
-## Features
+1. **Ürün kabuğu.** Üstte ürün adının, en önemli üç içgörüyü listeleyen bir bildirim zilinin ve
+   bir profil rozetinin durduğu bir çubuk; yanda dört ekranlı bir menü (Genel bakış, Ürünler,
+   Şehirler, Ayarlar); veri gelirken iskelet yükleyiciler ve filtrelere hiçbir şey uymadığında
+   her bileşende Türkçe bir boş durum mesajı. Her ekranın kendi URL adresi var, yani tarayıcının
+   geri tuşu da doğrudan bağlantı da çalışıyor.
+2. **Genel bakış.** Dört KPI kartı (ciro, satılan adet, sipariş sayısı, ortalama sepet); her biri
+   aynı uzunluktaki önceki döneme göre yüzde değişimi taşıyor. Yanında da hedef geçilince yeşile
+   dönen aylık ciro hedefi çubuğu var.
+3. **Ciro zaman çizelgesi**, gün / hafta / ay kırılımı arasında geçiş yapan bir anahtarla.
+4. **Kategori payı halkası**, yüzde etiketleriyle ve tıklanabilir bir gösterge listesiyle: bir
+   dilimi seçtiğinde o kategori tüm uygulamaya filtre olarak uygulanıyor.
+5. **Ürünler ve Şehirler.** Ürün başına ciro, adet ve pay için sıralanabilir sütunlar ve anında
+   arama kutusu; ciroya göre sıralanmış, ipucu balonunda ciro, adet ve payı gösteren bir şehir
+   çubuk grafiği ve aynı sayıların tablo hali.
+6. **Tek filtre çubuğu** (hazır dönem ya da özel tarih aralığı, kategori, şehir) bütün ekranları
+   tek bir durumdan sürüyor; bir filtre etkinken beliren bir "filtreleri temizle" düğmesi var.
+7. **İçgörü paneli.** Sunucu, filtrelenmiş satırlardan 3 ile 5 arası çıkarım hesaplıyor: en iyi
+   gün, öne çıkan kategori, dönemin iki yarısı arasında en çok hareket eden başlık, en zayıf şehir
+   için önerilen bir aksiyon ve ortalama sepet tutarı. Her biri arkasındaki sayıyı da taşıyor.
+8. **Gerçekten bir şeyi değiştiren Ayarlar**, hepsi localStorage'da saklanıyor: tema (koyu /
+   açık), para birimi (TL, USD, EUR; sabit bir kur tablosu üzerinden, grafikler ve içgörüler dahil
+   uygulamadaki her para rakamına uygulanıyor), ilerleme çubuğunu besleyen aylık hedef ciro ve veri
+   setinin yerine geçen bir CSV içeri alma.
 
-1. **Four KPI cards.** Ciro, satılan adet, sipariş sayısı and ortalama sepet, each with the
-   percent change against the previous period of the same length. When the filtered range has
-   no previous period the card says so instead of inventing a number.
-2. **Revenue timeline** with a gün / hafta / ay granularity switch, redrawn from the server on
-   every switch.
-3. **Category donut** with percentage labels. Clicking a slice applies that category filter,
-   clicking it again removes it.
-4. **City bar chart** sorted by revenue, with revenue and units both in the tooltip.
-5. **Product table** with sortable columns, an instant search box, and revenue, units and share
-   of total per product.
-6. **One filter bar** (date range, category, city) driving every widget from a single state
-   object, with a visible "filtreleri temizle" reset.
-7. **Insight panel.** The server computes 3 to 5 observations from the filtered rows (best day,
-   standout category, biggest mover against the previous period, leading city, one concrete
-   suggested action), each carrying the number behind it. The frontend only renders them.
-8. **Premium dark look** with one accent color, Turkish number formatting with ₺ on money, and a
-   layout that still reads at 390px phone width.
+Kullanıcının gördüğü bütün metinler Türkçe. Kod ve kod yorumları İngilizce; bu belge Türkçe.
 
-## The team that built it
+## Takım
 
-| Role | Model | Effort | What it delivered |
+| Rol | Reçetenin görevlendirdiği model | Efor | Sorumlu olduğu iş |
 |---|---|---|---|
-| Orchestrator | Claude Opus 5 | high | published the contract, integrated the parts, reviewed the running app, wrote this README and the build log |
-| Backend Lead | Claude Sonnet | medium | `package.json`, `server.js`, the SQLite schema, the CSV import and the row generator, every aggregation route, the insight engine |
-| Frontend Lead | Claude Sonnet | medium | `public/index.html`, `public/style.css`, `public/app.js`: KPI cards, three charts, filter bar, product table, insight panel, the dark theme |
-| QA Lead | Claude Sonnet | medium | turned the six acceptance items into real browser and curl checks, found five bugs, fixed them, re-verified |
-| Three fix workers | Claude Sonnet | low | the twelve defects the QA pass and the orchestrator review left behind, listed in the build log |
+| Orkestratör | Opus 5 | high | Kimse tek satır yazmadan önce sözleşmeyi yayımladı, parçaları birleştirdi, en sonda QA'yı yürüttü |
+| Backend Lideri | Sonnet | medium | `server.js`, SQLite şeması, CSV içeri alma ve satır üreticisi, bütün toplulaştırma uçları, içgörü motoru |
+| Frontend Lideri | Sonnet | medium | `public/index.html`, `public/style.css`, `public/app.js`, kabuk, dört ekran, KPI kartları, grafikler ve filtre çubuğu |
+| QA Lideri | Sonnet | medium | Kabul kontrol listesini gerçek testlere çevirdi, sunucuyu başlattı, her maddeyi tarayıcıda ve curl ile doğruladı, madde madde geçti ya da kaldı diye raporladı |
 
-The two leads ran at the same time in separate sessions on separate ports. They never read each
-other's files: the contract in `BUILD-LOG.md` is the only reason their halves fit together.
+Orkestratörün en başta yayımladığı sözleşme, testlerin tam kaydı, QA'nın bulduğu beş hata ve
+bağımsız doğrulama geçişinde çıkan üç düzeltme [BUILD-LOG.md](BUILD-LOG.md) dosyasında. O dosya
+bu özel yapımın nasıl ilerlediğini de not ediyor: yapım oturumunda Agent aracı kullanılamadığı için
+orkestratör üç lider rolünü aynı sözleşmeye karşı üç ayrı geçişte kendisi yürüttü.
 
-## Verified
+## Doğrulandı
 
-Checked on a clean machine state: `node_modules` deleted, reinstalled from scratch,
-`data.sqlite` deleted, then `PORT=3000 node server.js`.
+Her madde çalışan bir sunucuya karşı, tarayıcıda DevTools protokolü üzerinden ya da curl ile
+kontrol edildi, sonra da bağımsız bir doğrulama geçişinde temiz bir kurulum üzerinde baştan
+tekrarlandı; kanıtı [BUILD-LOG.md](BUILD-LOG.md) dosyasında.
 
-| # | Check | Result | Evidence |
-|---|---|---|---|
-| 1 | `npm install` then `node server.js` start clean, http://localhost:3000 renders real data with no console errors | **pass** | 70 packages installed in one run, server logged its URL, `curl` returned HTTP 200, and a CDP console listener recorded zero errors and zero warnings at both 1440x900 and 390x844 |
-| 2 | `curl -s localhost:3000/api/kpis` returns non zero revenue, units and orders | **pass** | revenue 445390, units 526, orders 120 |
-| 3 | The last 7 days change the KPI cards, timeline, donut, city chart and table at once, and the table total matches the revenue card | **pass** | `?from=2026-08-22&to=2026-08-28`: KPI revenue 128160, product table total 128160, sum of the rows 128160, and every widget redrew in the browser |
-| 4 | Month granularity redraws with fewer, wider points | **pass** | 28 points at day granularity against 1 at month granularity on this one month CSV, and the single point is drawn with a visible radius |
-| 5 | `curl -s localhost:3000/api/insights` returns 3 to 5 insights, each carrying a number | **pass** | 4 insights on the full range, 5 on a filtered range, 3 on the thinnest filter, every one with a numeric `value` |
-| 6 | At 390px nothing overflows sideways and the widgets stack readably | **pass** | `document.documentElement.scrollWidth` is 390 against a `clientWidth` of 390, and the phone frame shows a two by two KPI grid over stacked widgets |
-
-Also checked: `PORT=3001` really moves the port, deleting `data.sqlite` reseeds to 120 rows,
-Chart.js is served from `/vendor` and never from a CDN, and every route answers HTTP 200 with
-JSON even when the filters are malformed.
+| # | Kontrol | Sonuç |
+|---|---|---|
+| 1 | `npm install` ve ardından `node server.js` temiz başlıyor, http://localhost:3000 gerçek veriyi konsolda tek bir hata olmadan çiziyor ve yan menü dört ekranın hepsine ulaşıyor | geçti |
+| 2 | `curl -s localhost:3000/api/kpis` sıfırdan farklı ciro, adet ve sipariş döndürüyor | geçti, 445390 / 526 / 120 |
+| 3 | Tarih aralığını son 7 güne almak KPI kartlarını, zaman çizelgesini, halkayı, şehir grafiğini ve ürün tablosunu aynı anda değiştiriyor ve tablo toplamı ciro kartıyla birebir uyuyor | geçti, ikisi de 128160 |
+| 4 | Ayarlar'da temayı açık, para birimini USD yapmak bütün uygulamayı ve her para rakamını yeniden boyuyor, sayfa yenilenince ikisi de korunuyor, aylık hedef ciroyu yükseltmek ilerleme çubuğunu oynatıyor | geçti |
+| 5 | `curl -s localhost:3000/api/insights` her biri bir sayı taşıyan 3 ile 5 arası içgörü döndürüyor | geçti, 5 içgörü |
+| 6 | 390px genişlikte hiçbir şey yana taşmıyor, yan menü toplanıyor ve bileşenler alt alta diziliyor | geçti, dört ekranda da 0px taşma |
+| 7 | `PORT=3999 node server.js` verilen portta hizmet veriyor | geçti |
+| 8 | Temiz kontrol: `rm -rf node_modules`, `npm install`, başlat, `GET /` 200 dönüyor ve `/api/kpis` JSON cevaplıyor | geçti |

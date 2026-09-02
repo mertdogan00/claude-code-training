@@ -1,595 +1,470 @@
-// Satis Analitik Paneli backend. Express + built in node:sqlite, no native deps.
-import express from 'express';
-import { DatabaseSync } from 'node:sqlite';
+// Satis Analitik Paneli, API server.
+// Node 24 + Express + the built-in node:sqlite module. No native build step.
+
 import { existsSync, readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
+import express from 'express';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const PORT = process.env.PORT || 3000;
+const HERE = dirname(fileURLToPath(import.meta.url));
+const PORT = Number(process.env.PORT) || 3000;
+const HOST = '0.0.0.0';
+const DB_FILE = resolve(HERE, 'data.sqlite');
 
-const MONTHS_TR = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+const CATEGORIES = ['Kitchen', 'Electronics', 'Food'];
+const CITIES = ['Istanbul', 'Ankara', 'Izmir', 'Bursa', 'Antalya'];
+const CATALOG = [
+  { product: 'Coffee Maker', category: 'Electronics', price: 2400 },
+  { product: 'Grinder', category: 'Electronics', price: 1150 },
+  { product: 'French Press', category: 'Kitchen', price: 480 },
+  { product: 'Cup Set', category: 'Kitchen', price: 260 },
+  { product: 'Thermos', category: 'Kitchen', price: 350 },
+  { product: 'Coffee Beans 1kg', category: 'Food', price: 620 }
+];
 
-// ---------------------------------------------------------------------------
-// Database setup and seeding
-// ---------------------------------------------------------------------------
+/* ---------------------------------------------------------------- data layer */
 
-const db = new DatabaseSync(join(__dirname, 'data.sqlite'));
-
+const db = new DatabaseSync(DB_FILE);
+db.exec('PRAGMA journal_mode = WAL');
 db.exec(`
   CREATE TABLE IF NOT EXISTS sales (
-    id         INTEGER PRIMARY KEY,
-    date       TEXT    NOT NULL,
-    product    TEXT    NOT NULL,
-    category   TEXT    NOT NULL,
-    qty        INTEGER NOT NULL,
-    unit_price REAL    NOT NULL,
-    city       TEXT    NOT NULL,
-    revenue    REAL    NOT NULL
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL,
+    product TEXT NOT NULL,
+    category TEXT NOT NULL,
+    qty INTEGER NOT NULL,
+    unit_price REAL NOT NULL,
+    city TEXT NOT NULL,
+    revenue REAL NOT NULL
   );
-  CREATE TABLE IF NOT EXISTS meta (
-    key   TEXT PRIMARY KEY,
-    value TEXT
-  );
+  CREATE INDEX IF NOT EXISTS idx_sales_date ON sales(date);
+  CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 `);
 
-function toISODate(d) {
-  return d.toISOString().slice(0, 10);
+function setMeta(key, value) {
+  db.prepare('INSERT INTO meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value')
+    .run(key, String(value));
 }
 
-function findCsvPath() {
-  const candidates = ['data/sales-data.csv', '../data/sales-data.csv', '../../data/sales-data.csv'];
-  for (const rel of candidates) {
-    const abs = join(__dirname, rel);
-    if (existsSync(abs)) return abs;
+function getMeta(key) {
+  const row = db.prepare('SELECT value FROM meta WHERE key = ?').get(key);
+  return row ? row.value : null;
+}
+
+function rowCount() {
+  return db.prepare('SELECT COUNT(*) AS n FROM sales').get().n;
+}
+
+/* CSV import. The columns are date,product,category,qty,unit_price,city. */
+
+function splitCsvLine(line) {
+  const out = [];
+  let field = '';
+  let quoted = false;
+  for (let i = 0; i < line.length; i += 1) {
+    const ch = line[i];
+    if (quoted) {
+      if (ch === '"' && line[i + 1] === '"') { field += '"'; i += 1; }
+      else if (ch === '"') quoted = false;
+      else field += ch;
+    } else if (ch === '"') quoted = true;
+    else if (ch === ',') { out.push(field); field = ''; }
+    else field += ch;
   }
-  return null;
+  out.push(field);
+  return out.map((v) => v.trim());
 }
 
 function parseCsv(text) {
-  const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
-  lines.shift(); // header
-  return lines.map((line) => {
-    const [date, product, category, qty, unit_price, city] = line.split(',');
-    return { date, product, category, qty: Number(qty), unit_price: Number(unit_price), city: city.trim() };
-  });
+  const lines = text.split(/\r?\n/).filter((l) => l.trim() !== '');
+  if (lines.length < 2) return [];
+  const header = splitCsvLine(lines[0]).map((h) => h.toLowerCase());
+  const idx = (name) => header.indexOf(name);
+  const need = ['date', 'product', 'category', 'qty', 'unit_price', 'city'];
+  if (need.some((n) => idx(n) === -1)) {
+    throw new Error('CSV header must contain date,product,category,qty,unit_price,city');
+  }
+  const rows = [];
+  for (const line of lines.slice(1)) {
+    const cells = splitCsvLine(line);
+    const qty = Number(cells[idx('qty')]);
+    const price = Number(cells[idx('unit_price')]);
+    const date = cells[idx('date')];
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(qty) || !Number.isFinite(price)) continue;
+    rows.push({
+      date,
+      product: cells[idx('product')],
+      category: cells[idx('category')],
+      qty,
+      unit_price: price,
+      city: cells[idx('city')]
+    });
+  }
+  return rows;
 }
 
-function generateRows(count) {
-  const categories = ['Electronics', 'Kitchen', 'Food', 'Fashion', 'Sports'];
-  const productsByCategory = {
-    Electronics: ['Coffee Maker', 'Grinder', 'Blender', 'Toaster'],
-    Kitchen: ['Thermos', 'Pan Set', 'Knife Set', 'Cutting Board'],
-    Food: ['Coffee Beans 1kg', 'Tea Box', 'Olive Oil', 'Honey Jar'],
-    Fashion: ['T-Shirt', 'Jeans', 'Jacket', 'Sneakers'],
-    Sports: ['Yoga Mat', 'Dumbbell Set', 'Running Shoes', 'Bicycle Helmet'],
+function replaceRows(rows, source) {
+  const insert = db.prepare(
+    'INSERT INTO sales (date, product, category, qty, unit_price, city, revenue) VALUES (?, ?, ?, ?, ?, ?, ?)'
+  );
+  db.exec('BEGIN');
+  try {
+    db.exec('DELETE FROM sales');
+    for (const r of rows) {
+      insert.run(r.date, r.product, r.category, r.qty, r.unit_price, r.city, r.qty * r.unit_price);
+    }
+    db.exec('COMMIT');
+  } catch (err) {
+    db.exec('ROLLBACK');
+    throw err;
+  }
+  setMeta('source', source);
+  setMeta('imported_at', new Date().toISOString());
+  return rows.length;
+}
+
+/* Seed. The repo CSV wins when it is reachable, otherwise 120 rows are generated. */
+
+function findRepoCsv() {
+  const candidates = [
+    resolve(HERE, 'data/sales-data.csv'),
+    resolve(HERE, '../data/sales-data.csv'),
+    resolve(HERE, '../../data/sales-data.csv'),
+    resolve(HERE, '../../../data/sales-data.csv')
+  ];
+  return candidates.find((p) => existsSync(p)) || null;
+}
+
+function generateRows(count = 120) {
+  let seed = 20260902;
+  const rand = () => {
+    seed = (seed * 1103515245 + 12345) % 2147483648;
+    return seed / 2147483648;
   };
-  const priceRanges = {
-    Electronics: [800, 3500],
-    Kitchen: [200, 1500],
-    Food: [80, 900],
-    Fashion: [150, 2000],
-    Sports: [300, 2500],
-  };
-  const cities = ['Ankara', 'Istanbul', 'Izmir', 'Bursa', 'Antalya'];
-  const now = new Date();
+  const end = new Date('2026-08-28T00:00:00Z');
   const rows = [];
-  for (let i = 0; i < count; i++) {
-    const category = categories[Math.floor(Math.random() * categories.length)];
-    const products = productsByCategory[category];
-    const product = products[Math.floor(Math.random() * products.length)];
-    const city = cities[Math.floor(Math.random() * cities.length)];
-    const qty = 1 + Math.floor(Math.random() * 10);
-    const [lo, hi] = priceRanges[category];
-    const unit_price = Math.round((lo + Math.random() * (hi - lo)) * 100) / 100;
-    const daysAgo = Math.floor(Math.random() * 90);
-    const date = new Date(now);
-    date.setUTCDate(date.getUTCDate() - daysAgo);
-    rows.push({ date: toISODate(date), product, category, qty, unit_price, city });
+  for (let i = 0; i < count; i += 1) {
+    const item = CATALOG[Math.floor(rand() * CATALOG.length)];
+    const day = new Date(end.getTime() - Math.floor(rand() * 28) * 86400000);
+    const weekendBoost = [0, 6].includes(day.getUTCDay()) ? 1.4 : 1;
+    rows.push({
+      date: day.toISOString().slice(0, 10),
+      product: item.product,
+      category: item.category,
+      qty: Math.max(1, Math.round(rand() * 6 * weekendBoost)),
+      unit_price: Math.round(item.price * (0.92 + rand() * 0.16)),
+      city: CITIES[Math.floor(rand() * CITIES.length)]
+    });
   }
   return rows;
 }
 
 function seedIfEmpty() {
-  const { c } = db.prepare('SELECT COUNT(*) AS c FROM sales').get();
-  if (c > 0) return;
-
-  const csvPath = findCsvPath();
-  let rows;
-  let source;
+  if (rowCount() > 0) return;
+  const csvPath = findRepoCsv();
   if (csvPath) {
-    rows = parseCsv(readFileSync(csvPath, 'utf8'));
-    source = 'csv';
-  } else {
-    rows = generateRows(120);
-    source = 'generated';
+    const rows = parseCsv(readFileSync(csvPath, 'utf8'));
+    if (rows.length > 0) {
+      replaceRows(rows, `csv:${csvPath}`);
+      console.log(`Seeded ${rows.length} rows from ${csvPath}`);
+      return;
+    }
   }
-
-  const insert = db.prepare(
-    'INSERT INTO sales (date, product, category, qty, unit_price, city, revenue) VALUES (?, ?, ?, ?, ?, ?, ?)'
-  );
-  db.exec('BEGIN');
-  for (const r of rows) {
-    insert.run(r.date, r.product, r.category, r.qty, r.unit_price, r.city, r.qty * r.unit_price);
-  }
-  db.exec('COMMIT');
-
-  db.prepare('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)').run('source', source);
+  const rows = generateRows(120);
+  replaceRows(rows, 'generated');
+  console.log(`Seeded ${rows.length} generated rows`);
 }
 
 seedIfEmpty();
 
-// ---------------------------------------------------------------------------
-// Shared filter helper: builds a bound WHERE clause from the four filter params
-// ---------------------------------------------------------------------------
+/* ------------------------------------------------------------- aggregations */
 
-function isValidDateStr(s) {
-  return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(new Date(`${s}T00:00:00Z`).getTime());
+function bounds() {
+  const row = db.prepare('SELECT MIN(date) AS min, MAX(date) AS max FROM sales').get();
+  return { min: row.min || null, max: row.max || null };
 }
 
-// A repeated query key arrives as an array, which SQLite cannot bind, so only
-// plain non empty strings become filter values. Anything else is ignored.
-function isValidTextValue(v) {
-  return typeof v === 'string' && v.length > 0;
+// Dates arrive from the URL, so anything that is not a plain YYYY-MM-DD is dropped instead of
+// being handed to Date, which would throw on the routes that walk back a previous window.
+function isoDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  return Number.isNaN(Date.parse(`${value}T00:00:00Z`)) ? null : value;
 }
 
-function buildFilter({ from, to, category, city } = {}) {
-  const conditions = [];
+function buildFilter(query) {
+  const where = [];
   const params = [];
-  if (isValidDateStr(from)) {
-    conditions.push('date >= ?');
-    params.push(from);
-  }
-  if (isValidDateStr(to)) {
-    conditions.push('date <= ?');
-    params.push(to);
-  }
-  if (isValidTextValue(category)) {
-    conditions.push('category = ?');
-    params.push(category);
-  }
-  if (isValidTextValue(city)) {
-    conditions.push('city = ?');
-    params.push(city);
-  }
-  const clause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
-  return { clause, params };
+  const from = isoDate(query.from);
+  const to = isoDate(query.to);
+  if (from) { where.push('date >= ?'); params.push(from); }
+  if (to) { where.push('date <= ?'); params.push(to); }
+  if (query.category) { where.push('category = ?'); params.push(String(query.category)); }
+  if (query.city) { where.push('city = ?'); params.push(String(query.city)); }
+  return { sql: where.length ? `WHERE ${where.join(' AND ')}` : '', params };
 }
 
-function daysBetweenInclusive(fromStr, toStr) {
-  const a = new Date(`${fromStr}T00:00:00Z`);
-  const b = new Date(`${toStr}T00:00:00Z`);
-  return Math.round((b - a) / 86400000) + 1;
+function selectRows(query) {
+  const f = buildFilter(query);
+  return db.prepare(`SELECT date, product, category, qty, unit_price, city, revenue FROM sales ${f.sql} ORDER BY date`)
+    .all(...f.params);
 }
 
-function addDays(dateStr, n) {
-  const d = new Date(`${dateStr}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + n);
-  return toISODate(d);
+function totals(query) {
+  const f = buildFilter(query);
+  const row = db.prepare(
+    `SELECT COALESCE(SUM(revenue), 0) AS revenue, COALESCE(SUM(qty), 0) AS units, COUNT(*) AS orders
+     FROM sales ${f.sql}`
+  ).get(...f.params);
+  return {
+    revenue: Number(row.revenue),
+    units: Number(row.units),
+    orders: Number(row.orders),
+    avgBasket: row.orders > 0 ? Number(row.revenue) / Number(row.orders) : 0
+  };
 }
 
-function round1(n) {
-  return Math.round(n * 10) / 10;
+function addDays(iso, days) {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
 }
 
-function round2(n) {
-  return Math.round(n * 100) / 100;
+function dayDiff(a, b) {
+  return Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86400000);
 }
 
-function pct(current, previous) {
+// The comparison window is the same number of days sitting right before the active one.
+function previousWindow(query) {
+  const b = bounds();
+  const from = isoDate(query.from) || b.min;
+  const to = isoDate(query.to) || b.max;
+  if (!from || !to) return null;
+  const span = dayDiff(from, to) + 1;
+  return { ...query, from: addDays(from, -span), to: addDays(from, -1) };
+}
+
+// null means there is no comparable previous period, which is not the same as zero growth.
+function percentChange(current, previous) {
   if (!previous) return null;
-  return round1(((current - previous) / previous) * 100);
+  return ((current - previous) / previous) * 100;
 }
 
-function formatMoney(n) {
-  return n.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function weekStart(iso) {
+  const d = new Date(`${iso}T00:00:00Z`);
+  const shift = (d.getUTCDay() + 6) % 7;
+  d.setUTCDate(d.getUTCDate() - shift);
+  return d.toISOString().slice(0, 10);
 }
 
-function formatMoneyTL(n) {
-  return `₺${formatMoney(n)}`;
+function bucketOf(iso, granularity) {
+  if (granularity === 'month') return iso.slice(0, 7);
+  if (granularity === 'week') return weekStart(iso);
+  return iso;
 }
 
-function formatPercentNumber(n) {
-  return n.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+function groupBy(rows, keyFn) {
+  const map = new Map();
+  for (const r of rows) {
+    const key = keyFn(r);
+    const agg = map.get(key) || { key, revenue: 0, units: 0, orders: 0 };
+    agg.revenue += r.revenue;
+    agg.units += r.qty;
+    agg.orders += 1;
+    map.set(key, agg);
+  }
+  return [...map.values()];
 }
 
-function formatPercent(n) {
-  const sign = n > 0 ? '+' : '';
-  return `${sign}${formatPercentNumber(n)}%`;
+function withShare(items) {
+  const total = items.reduce((sum, i) => sum + i.revenue, 0);
+  return items.map((i) => ({ ...i, share: total > 0 ? (i.revenue / total) * 100 : 0 }));
 }
 
-function mondayOf(dateStr) {
-  const d = new Date(`${dateStr}T00:00:00Z`);
-  const day = d.getUTCDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  d.setUTCDate(d.getUTCDate() + diff);
-  return toISODate(d);
-}
+/* Insights are computed here, on the server, from the filtered rows. */
 
-function dayLabel(dateStr) {
-  const d = new Date(`${dateStr}T00:00:00Z`);
-  return `${d.getUTCDate()} ${MONTHS_TR[d.getUTCMonth()]}`;
-}
+function buildInsights(query) {
+  const rows = selectRows(query);
+  const out = [];
+  if (rows.length === 0) return out;
 
-function weekLabel(mondayStr) {
-  const monday = new Date(`${mondayStr}T00:00:00Z`);
-  const sunday = new Date(monday);
-  sunday.setUTCDate(sunday.getUTCDate() + 6);
+  const byDay = groupBy(rows, (r) => r.date).sort((a, b) => b.revenue - a.revenue);
+  out.push({
+    id: 'best-day',
+    tone: 'good',
+    title: 'En iyi gün',
+    text: `${byDay[0].key} tarihinde ${byDay[0].orders} sipariş ile dönemin en yüksek cirosu yakalandı.`,
+    value: byDay[0].revenue,
+    valueType: 'money'
+  });
 
-  const sameMonth = monday.getUTCFullYear() === sunday.getUTCFullYear() && monday.getUTCMonth() === sunday.getUTCMonth();
-  if (sameMonth) {
-    return `${monday.getUTCDate()}-${sunday.getUTCDate()} ${MONTHS_TR[monday.getUTCMonth()]}`;
+  const byCategory = withShare(groupBy(rows, (r) => r.category)).sort((a, b) => b.revenue - a.revenue);
+  out.push({
+    id: 'top-category',
+    tone: 'good',
+    title: 'Öne çıkan kategori',
+    text: `${byCategory[0].key} kategorisi toplam cironun yüzde ${byCategory[0].share.toFixed(1)} kadarını tek başına üretiyor.`,
+    value: byCategory[0].revenue,
+    valueType: 'money'
+  });
+
+  const sorted = [...rows].sort((a, b) => a.date.localeCompare(b.date));
+  const half = Math.floor(sorted.length / 2);
+  const firstHalf = groupBy(sorted.slice(0, half), (r) => r.product);
+  const secondHalf = groupBy(sorted.slice(half), (r) => r.product);
+  const firstMap = new Map(firstHalf.map((i) => [i.key, i.revenue]));
+  const movers = secondHalf
+    .map((i) => ({ key: i.key, change: percentChange(i.revenue, firstMap.get(i.key) || 0), revenue: i.revenue }))
+    .filter((i) => i.change !== null && Number.isFinite(i.change))
+    .sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
+  if (movers.length > 0) {
+    const m = movers[0];
+    out.push({
+      id: 'mover',
+      tone: m.change >= 0 ? 'good' : 'warn',
+      title: 'En hızlı değişen ürün',
+      text: `${m.key}, dönemin ikinci yarısında ilk yarısına göre ${m.change >= 0 ? 'yükseldi' : 'geriledi'}.`,
+      value: m.change,
+      valueType: 'percent'
+    });
   }
 
-  const sameYear = monday.getUTCFullYear() === sunday.getUTCFullYear();
-  const start = `${monday.getUTCDate()} ${MONTHS_TR[monday.getUTCMonth()]}${sameYear ? '' : ` ${monday.getUTCFullYear()}`}`;
-  const end = `${sunday.getUTCDate()} ${MONTHS_TR[sunday.getUTCMonth()]} ${sunday.getUTCFullYear()}`;
-  return `${start} - ${end}`;
+  const byCity = withShare(groupBy(rows, (r) => r.city)).sort((a, b) => b.revenue - a.revenue);
+  if (byCity.length > 1) {
+    const weakest = byCity[byCity.length - 1];
+    out.push({
+      id: 'action',
+      tone: 'warn',
+      title: 'Önerilen aksiyon',
+      text: `${weakest.key} cironun en küçük parçası. ${byCity[0].key} için çalışan kampanyayı bu şehirde de deneyin.`,
+      value: weakest.share,
+      valueType: 'percent'
+    });
+  }
+
+  const avg = rows.reduce((s, r) => s + r.revenue, 0) / rows.length;
+  out.push({
+    id: 'basket',
+    tone: 'neutral',
+    title: 'Sipariş başı ciro',
+    text: `${rows.length} siparişin ortalama tutarı bu dönemde bu seviyede kaldı.`,
+    value: avg,
+    valueType: 'money'
+  });
+
+  return out.slice(0, 5);
 }
 
-function monthLabel(monthStr) {
-  const [year, month] = monthStr.split('-');
-  return `${MONTHS_TR[Number(month) - 1]} ${year}`;
-}
-
-// Resolves the effective from/to for a request: explicit params win, otherwise
-// the full min/max date of the rows matching the category/city filter.
-function effectiveRange(query) {
-  const { clause, params } = buildFilter({ category: query.category, city: query.city });
-  const row = db.prepare(`SELECT MIN(date) AS min, MAX(date) AS max FROM sales ${clause}`).get(...params);
-  const from = isValidDateStr(query.from) ? query.from : row.min;
-  const to = isValidDateStr(query.to) ? query.to : row.max;
-  return { from, to };
-}
-
-// ---------------------------------------------------------------------------
-// App
-// ---------------------------------------------------------------------------
+/* ------------------------------------------------------------------- routes */
 
 const app = express();
+app.use(express.json({ limit: '5mb' }));
+app.use(express.text({ type: 'text/csv', limit: '5mb' }));
+app.use(express.static(resolve(HERE, 'public')));
+app.use('/vendor', express.static(resolve(HERE, 'node_modules/chart.js/dist')));
 
-app.get('/api/meta', (req, res) => {
-  const { c: rowCount } = db.prepare('SELECT COUNT(*) AS c FROM sales').get();
-  const categories = db.prepare('SELECT DISTINCT category FROM sales ORDER BY category ASC').all().map((r) => r.category);
-  const cities = db.prepare('SELECT DISTINCT city FROM sales ORDER BY city ASC').all().map((r) => r.city);
-  const range = db.prepare('SELECT MIN(date) AS min, MAX(date) AS max FROM sales').get();
-  const sourceRow = db.prepare('SELECT value FROM meta WHERE key = ?').get('source');
+app.get('/api/health', (_req, res) => {
+  res.json({ ok: true, rows: rowCount(), source: getMeta('source') });
+});
 
+app.get('/api/meta', (_req, res) => {
+  const b = bounds();
+  const cats = db.prepare('SELECT DISTINCT category FROM sales ORDER BY category').all().map((r) => r.category);
+  const cities = db.prepare('SELECT DISTINCT city FROM sales ORDER BY city').all().map((r) => r.city);
   res.json({
-    categories,
-    cities,
-    dateRange: { min: range.min || null, max: range.max || null },
-    rowCount,
-    source: sourceRow ? sourceRow.value : 'generated',
+    rows: rowCount(),
+    source: getMeta('source'),
+    importedAt: getMeta('imported_at'),
+    dateRange: b,
+    categories: cats,
+    cities
   });
 });
 
 app.get('/api/kpis', (req, res) => {
-  const { from, to } = effectiveRange(req.query);
-
-  if (!from || !to) {
-    res.json({
-      range: { from: '', to: '', prevFrom: '', prevTo: '', days: 0 },
-      current: { revenue: 0, units: 0, orders: 0, avgBasket: 0 },
-      previous: { revenue: 0, units: 0, orders: 0, avgBasket: 0 },
-      change: { revenue: null, units: null, orders: null, avgBasket: null },
-    });
-    return;
-  }
-
-  const days = daysBetweenInclusive(from, to);
-  const prevTo = addDays(from, -1);
-  const prevFrom = addDays(prevTo, -(days - 1));
-
-  const aggregate = (fromStr, toStr) => {
-    const { clause, params } = buildFilter({ from: fromStr, to: toStr, category: req.query.category, city: req.query.city });
-    const row = db
-      .prepare(`SELECT COUNT(*) AS orders, COALESCE(SUM(qty), 0) AS units, COALESCE(SUM(revenue), 0) AS revenue FROM sales ${clause}`)
-      .get(...params);
-    const avgBasket = row.orders ? row.revenue / row.orders : 0;
-    return { revenue: round2(row.revenue), units: row.units, orders: row.orders, avgBasket: round2(avgBasket) };
-  };
-
-  const current = aggregate(from, to);
-  const previous = aggregate(prevFrom, prevTo);
-
+  const current = totals(req.query);
+  const prevQuery = previousWindow(req.query);
+  const previous = prevQuery ? totals(prevQuery) : { revenue: 0, units: 0, orders: 0, avgBasket: 0 };
   res.json({
-    range: { from, to, prevFrom, prevTo, days },
     current,
     previous,
     change: {
-      revenue: pct(current.revenue, previous.revenue),
-      units: pct(current.units, previous.units),
-      orders: pct(current.orders, previous.orders),
-      avgBasket: pct(current.avgBasket, previous.avgBasket),
-    },
+      revenue: percentChange(current.revenue, previous.revenue),
+      units: percentChange(current.units, previous.units),
+      orders: percentChange(current.orders, previous.orders),
+      avgBasket: percentChange(current.avgBasket, previous.avgBasket)
+    }
   });
 });
 
 app.get('/api/timeline', (req, res) => {
   const granularity = ['day', 'week', 'month'].includes(req.query.granularity) ? req.query.granularity : 'day';
-  const { clause, params } = buildFilter(req.query);
-  const rows = db.prepare(`SELECT date, qty, revenue FROM sales ${clause}`).all(...params);
-
-  const buckets = new Map();
-  for (const row of rows) {
-    let bucket;
-    let label;
-    if (granularity === 'week') {
-      bucket = mondayOf(row.date);
-      label = weekLabel(bucket);
-    } else if (granularity === 'month') {
-      bucket = row.date.slice(0, 7);
-      label = monthLabel(bucket);
-    } else {
-      bucket = row.date;
-      label = dayLabel(bucket);
-    }
-    if (!buckets.has(bucket)) {
-      buckets.set(bucket, { bucket, label, revenue: 0, units: 0, orders: 0 });
-    }
-    const b = buckets.get(bucket);
-    b.revenue += row.revenue;
-    b.units += row.qty;
-    b.orders += 1;
-  }
-
-  const points = [...buckets.values()]
-    .sort((a, b) => (a.bucket < b.bucket ? -1 : 1))
-    .map((p) => ({ ...p, revenue: round2(p.revenue) }));
-
+  const rows = selectRows(req.query);
+  const points = groupBy(rows, (r) => bucketOf(r.date, granularity))
+    .sort((a, b) => a.key.localeCompare(b.key))
+    .map((p) => ({ bucket: p.key, revenue: p.revenue, units: p.units, orders: p.orders }));
   res.json({ granularity, points });
 });
 
 app.get('/api/categories', (req, res) => {
-  const { clause, params } = buildFilter(req.query);
-  const rows = db
-    .prepare(`SELECT category, SUM(revenue) AS revenue, SUM(qty) AS units, COUNT(*) AS orders FROM sales ${clause} GROUP BY category`)
-    .all(...params);
-
-  const total = rows.reduce((sum, r) => sum + r.revenue, 0);
-  const items = rows
-    .map((r) => ({
-      category: r.category,
-      revenue: round2(r.revenue),
-      units: r.units,
-      orders: r.orders,
-      share: total ? round1((r.revenue / total) * 100) : 0,
-    }))
-    .sort((a, b) => b.revenue - a.revenue);
-
-  res.json({ total: round2(total), items });
-});
-
-app.get('/api/cities', (req, res) => {
-  const { clause, params } = buildFilter(req.query);
-  const rows = db
-    .prepare(`SELECT city, SUM(revenue) AS revenue, SUM(qty) AS units, COUNT(*) AS orders FROM sales ${clause} GROUP BY city`)
-    .all(...params);
-
-  const items = rows
-    .map((r) => ({ city: r.city, revenue: round2(r.revenue), units: r.units, orders: r.orders }))
-    .sort((a, b) => b.revenue - a.revenue);
-
+  const items = withShare(groupBy(selectRows(req.query), (r) => r.category))
+    .sort((a, b) => b.revenue - a.revenue)
+    .map((i) => ({ category: i.key, revenue: i.revenue, units: i.units, orders: i.orders, share: i.share }));
   res.json({ items });
 });
 
 app.get('/api/products', (req, res) => {
-  const { clause, params } = buildFilter(req.query);
-  const rows = db
-    .prepare(
-      `SELECT product, category, SUM(revenue) AS revenue, SUM(qty) AS units, COUNT(*) AS orders FROM sales ${clause} GROUP BY product, category`
-    )
-    .all(...params);
+  const rows = selectRows(req.query);
+  const categoryOf = new Map(rows.map((r) => [r.product, r.category]));
+  const items = withShare(groupBy(rows, (r) => r.product))
+    .sort((a, b) => b.revenue - a.revenue)
+    .map((i) => ({
+      product: i.key,
+      category: categoryOf.get(i.key) || '',
+      revenue: i.revenue,
+      units: i.units,
+      orders: i.orders,
+      share: i.share
+    }));
+  res.json({ items });
+});
 
-  const total = rows.reduce((sum, r) => sum + r.revenue, 0);
-  const items = rows
-    .map((r) => ({
-      product: r.product,
-      category: r.category,
-      revenue: round2(r.revenue),
-      units: r.units,
-      orders: r.orders,
-      share: total ? round1((r.revenue / total) * 100) : 0,
-    }))
-    .sort((a, b) => b.revenue - a.revenue);
-
-  res.json({ total: round2(total), items });
+app.get('/api/cities', (req, res) => {
+  const items = withShare(groupBy(selectRows(req.query), (r) => r.city))
+    .sort((a, b) => b.revenue - a.revenue)
+    .map((i) => ({ city: i.key, revenue: i.revenue, units: i.units, orders: i.orders, share: i.share }));
+  res.json({ items });
 });
 
 app.get('/api/insights', (req, res) => {
-  const { from, to } = effectiveRange(req.query);
-  const insights = [];
-
-  if (!from || !to) {
-    insights.push(
-      {
-        id: 'no-data',
-        kind: 'info',
-        title: 'Veri bulunamadı',
-        text: 'Seçili filtrelerle eşleşen satış kaydı yok.',
-        value: 0,
-        valueLabel: '₺0,00',
-      },
-      {
-        id: 'no-data-category',
-        kind: 'info',
-        title: 'Kategori verisi yok',
-        text: 'Seçili filtrelerle eşleşen kategori bazlı satış kaydı yok.',
-        value: 0,
-        valueLabel: '₺0,00',
-      },
-      {
-        id: 'no-data-city',
-        kind: 'info',
-        title: 'Şehir verisi yok',
-        text: 'Seçili filtrelerle eşleşen şehir bazlı satış kaydı yok.',
-        value: 0,
-        valueLabel: '₺0,00',
-      }
-    );
-    res.json({ insights });
-    return;
-  }
-
-  const days = daysBetweenInclusive(from, to);
-  const prevTo = addDays(from, -1);
-  const prevFrom = addDays(prevTo, -(days - 1));
-
-  const { clause: curClause, params: curParams } = buildFilter({ from, to, category: req.query.category, city: req.query.city });
-  const currentRows = db.prepare(`SELECT * FROM sales ${curClause}`).all(...curParams);
-
-  const { clause: prevClause, params: prevParams } = buildFilter({
-    from: prevFrom,
-    to: prevTo,
-    category: req.query.category,
-    city: req.query.city,
-  });
-  const previousRows = db.prepare(`SELECT * FROM sales ${prevClause}`).all(...prevParams);
-
-  const groupBy = (rows, key) => {
-    const map = new Map();
-    for (const r of rows) {
-      if (!map.has(r[key])) map.set(r[key], 0);
-      map.set(r[key], map.get(r[key]) + r.revenue);
-    }
-    return map;
-  };
-
-  const totalRevenue = currentRows.reduce((sum, r) => sum + r.revenue, 0);
-
-  // 1. Best day
-  const byDate = groupBy(currentRows, 'date');
-  if (byDate.size > 0) {
-    const [bestDate, bestRevenue] = [...byDate.entries()].sort((a, b) => b[1] - a[1])[0];
-    insights.push({
-      id: 'best-day',
-      kind: 'peak',
-      title: 'En iyi gün',
-      text: `${dayLabel(bestDate)} tarihinde ${formatMoneyTL(bestRevenue)} gelir elde edildi, bu dönemin en yüksek günü.`,
-      value: round2(bestRevenue),
-      valueLabel: formatMoneyTL(bestRevenue),
-    });
-  } else {
-    insights.push({
-      id: 'best-day',
-      kind: 'peak',
-      title: 'En iyi gün',
-      text: 'Bu dönemde satış kaydı bulunamadı.',
-      value: 0,
-      valueLabel: '₺0,00',
-    });
-  }
-
-  // 2. Standout category
-  const byCategory = groupBy(currentRows, 'category');
-  if (byCategory.size > 0) {
-    const [topCategory, topCategoryRevenue] = [...byCategory.entries()].sort((a, b) => b[1] - a[1])[0];
-    const share = totalRevenue ? round1((topCategoryRevenue / totalRevenue) * 100) : 0;
-    insights.push({
-      id: 'standout-category',
-      kind: 'category',
-      title: 'Öne çıkan kategori',
-      text: `${topCategory} kategorisi toplam gelirin yüzde ${formatPercentNumber(share)} kadarını oluşturarak öne çıktı.`,
-      value: round2(topCategoryRevenue),
-      valueLabel: formatMoneyTL(topCategoryRevenue),
-    });
-  }
-
-  // 3. Biggest mover (category vs previous period)
-  const byCategoryPrev = groupBy(previousRows, 'category');
-  let bestMover = null;
-  for (const [cat, curRev] of byCategory.entries()) {
-    const prevRev = byCategoryPrev.get(cat) || 0;
-    if (prevRev <= 0) continue;
-    const change = pct(curRev, prevRev);
-    if (change === null) continue;
-    if (!bestMover || Math.abs(change) > Math.abs(bestMover.change)) {
-      bestMover = { cat, change, curRev };
-    }
-  }
-  if (bestMover) {
-    const direction = bestMover.change >= 0 ? 'arttı' : 'azaldı';
-    insights.push({
-      id: 'biggest-mover',
-      kind: 'mover',
-      title: 'En büyük değişim',
-      text: `${bestMover.cat} kategorisinin geliri önceki döneme göre yüzde ${formatPercentNumber(Math.abs(bestMover.change))} ${direction}.`,
-      value: bestMover.change,
-      valueLabel: formatPercent(bestMover.change),
-    });
-  }
-
-  // 4. Top city
-  const byCity = groupBy(currentRows, 'city');
-  if (byCity.size > 0) {
-    const [topCity, topCityRevenue] = [...byCity.entries()].sort((a, b) => b[1] - a[1])[0];
-    insights.push({
-      id: 'top-city',
-      kind: 'city',
-      title: 'Lider şehir',
-      text: `${topCity} şehri ${formatMoneyTL(topCityRevenue)} gelir ile lider şehir oldu.`,
-      value: round2(topCityRevenue),
-      valueLabel: formatMoneyTL(topCityRevenue),
-    });
-  }
-
-  // 5. Suggested action
-  if (byCategory.size > 0) {
-    const sortedCategories = [...byCategory.entries()].sort((a, b) => b[1] - a[1]);
-    const weakest = sortedCategories[sortedCategories.length - 1];
-    insights.push({
-      id: 'action',
-      kind: 'action',
-      title: 'Önerilen aksiyon',
-      text: `${weakest[0]} kategorisinde stok ve kampanya gözden geçirilmeli, bu dönemde sadece ${formatMoneyTL(weakest[1])} gelir getirdi.`,
-      value: round2(weakest[1]),
-      valueLabel: formatMoneyTL(weakest[1]),
-    });
-  }
-
-  // Guarantee a minimum of 3 insights even when the filter combination leaves too
-  // little data for the sections above to fire.
-  const fallbackPool = [
-    {
-      id: 'no-data-city',
-      kind: 'info',
-      title: 'Şehir verisi yok',
-      text: 'Seçili filtrelerle eşleşen şehir bazlı satış kaydı yok.',
-      value: 0,
-      valueLabel: '₺0,00',
-    },
-    {
-      id: 'no-data-category',
-      kind: 'info',
-      title: 'Kategori verisi yok',
-      text: 'Seçili filtrelerle eşleşen kategori bazlı satış kaydı yok.',
-      value: 0,
-      valueLabel: '₺0,00',
-    },
-    {
-      id: 'no-data-period',
-      kind: 'info',
-      title: 'Dönem karşılaştırması yok',
-      text: 'Seçili dönemde karşılaştırılabilir bir önceki dönem verisi yok.',
-      value: 0,
-      valueLabel: '₺0,00',
-    },
-  ];
-  let fallbackIndex = 0;
-  while (insights.length < 3 && fallbackIndex < fallbackPool.length) {
-    const candidate = fallbackPool[fallbackIndex++];
-    if (!insights.some((i) => i.id === candidate.id)) {
-      insights.push(candidate);
-    }
-  }
-
-  res.json({ insights: insights.slice(0, 5) });
+  res.json({ items: buildInsights(req.query) });
 });
 
-app.use('/vendor', express.static(join(__dirname, 'node_modules/chart.js/dist')));
-app.use(express.static(join(__dirname, 'public')));
+app.post('/api/import', (req, res) => {
+  const text = typeof req.body === 'string' ? req.body : req.body && req.body.csv;
+  if (typeof text !== 'string' || text.trim() === '') {
+    return res.status(400).json({ ok: false, error: 'CSV content is required' });
+  }
+  try {
+    const rows = parseCsv(text);
+    if (rows.length === 0) return res.status(400).json({ ok: false, error: 'No valid rows found' });
+    replaceRows(rows, 'upload');
+    return res.json({ ok: true, rows: rows.length, dateRange: bounds() });
+  } catch (err) {
+    return res.status(400).json({ ok: false, error: err.message });
+  }
+});
 
-app.listen(PORT, () => {
-  console.log(`Satis Analitik Paneli http://localhost:${PORT}`);
+app.use('/api', (_req, res) => res.status(404).json({ ok: false, error: 'Unknown API route' }));
+
+// A malformed body or an unexpected throw answers as JSON. Express's default handler would
+// return an HTML page carrying a stack trace and absolute paths.
+app.use((err, _req, res, _next) => {
+  const status = err.status && err.status < 500 ? err.status : 500;
+  res.status(status).json({ ok: false, error: status < 500 ? 'Invalid request' : 'Server error' });
+});
+
+app.listen(PORT, HOST, () => {
+  console.log(`Satis Analitik Paneli is running on http://localhost:${PORT}`);
+  console.log(`Rows: ${rowCount()} | source: ${getMeta('source')}`);
 });

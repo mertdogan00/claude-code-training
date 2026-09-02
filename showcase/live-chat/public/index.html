@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Salon Sohbeti</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Join screen: shown when localStorage['salon.user'] is missing -->
+<section id="join-screen" class="join-screen" hidden>
+  <div class="join-card">
+    <h1 class="join-title">Salon Sohbeti</h1>
+    <p class="join-subtitle">Sohbete katılmak için adını ve bir renk seç.</p>
+    <label class="join-label" for="join-name">Görünen ad</label>
+    <input id="join-name" class="join-input" type="text" maxlength="24" placeholder="Adın" autocomplete="off">
+    <p class="join-label">Avatar rengi</p>
+    <div id="join-colors" class="join-colors" role="radiogroup" aria-label="Avatar rengi"></div>
+    <button id="join-submit" class="btn btn-primary join-submit" type="button" disabled>Salona gir</button>
+  </div>
+</section>
+
+<!-- Product shell -->
+<div id="shell" class="shell" hidden>
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-product">Salon Sohbeti</span>
+      <span class="topbar-divider" aria-hidden="true">/</span>
+      <span id="topbar-room" class="topbar-room">Genel</span>
+    </div>
+    <div class="topbar-right">
+      <span id="connection-pill" class="connection-pill" role="status">bağlı</span>
+      <button id="profile-chip" class="profile-chip" type="button" aria-label="Ayarları aç">
+        <span id="profile-avatar" class="avatar avatar-sm">A</span>
+        <span id="profile-name" class="profile-name">Ad</span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="nav-tabs" aria-label="Ana gezinme">
+    <a id="nav-sohbet" class="nav-tab" href="#/sohbet">Sohbet</a>
+    <a id="nav-katil" class="nav-tab" href="#/katil">Katıl</a>
+    <a id="nav-ayarlar" class="nav-tab" href="#/ayarlar">Ayarlar</a>
+  </nav>
+
+  <main class="screens">
+
+    <!-- Sohbet screen -->
+    <section id="screen-sohbet" class="screen screen-sohbet">
+      <aside class="room-rail">
+        <div class="room-rail-head">
+          <span class="room-rail-title">Odalar</span>
+          <button id="create-room-btn" class="btn btn-ghost btn-sm" type="button">Oda oluştur</button>
+        </div>
+        <ul id="room-list" class="room-list"></ul>
+      </aside>
+
+      <div class="chat-main">
+        <div class="chat-search">
+          <input id="search-input" class="search-input" type="search" placeholder="Bu odada ara...">
+          <ul id="search-results" class="search-results" hidden></ul>
+        </div>
+
+        <div id="chat-loading" class="chat-loading">Yükleniyor...</div>
+
+        <div id="message-list" class="message-list" hidden></div>
+        <p id="empty-messages" class="empty-state" hidden>Henüz mesaj yok. İlk mesajı sen yaz.</p>
+
+        <p id="typing-line" class="typing-line" aria-live="polite"></p>
+
+        <form id="composer-form" class="composer">
+          <textarea id="composer-input" class="composer-input" placeholder="Bir mesaj yaz..." rows="1" maxlength="1000"></textarea>
+          <button id="composer-send" class="btn btn-primary composer-send" type="submit">Gönder</button>
+        </form>
+      </div>
+
+      <aside class="online-rail">
+        <span class="online-rail-title">Çevrimiçi</span>
+        <ul id="online-list" class="online-list"></ul>
+        <p id="empty-online" class="empty-state" hidden>Şu an odada başka kimse yok.</p>
+      </aside>
+    </section>
+
+    <!-- Katil (projector) screen -->
+    <section id="screen-katil" class="screen screen-katil" hidden>
+      <div class="katil-card">
+        <h2 class="katil-heading">Odaya katıl</h2>
+        <img id="katil-qr" class="katil-qr" alt="Katılım QR kodu" hidden>
+        <p id="katil-url" class="katil-url"></p>
+        <p id="katil-instruction" class="katil-instruction">Aynı kablosuz ağa bağlanıp kodu okut veya adresi tarayıcına yaz.</p>
+        <p id="katil-error" class="katil-error" hidden>Katılım bilgisi alınamadı, sunucu çalışıyor mu kontrol et.</p>
+      </div>
+    </section>
+
+    <!-- Ayarlar screen -->
+    <section id="screen-ayarlar" class="screen screen-ayarlar" hidden>
+      <div class="settings-card">
+        <div class="settings-preview">
+          <span id="settings-preview-avatar" class="avatar avatar-lg">A</span>
+          <div>
+            <p id="settings-preview-name" class="settings-preview-name">Ad</p>
+            <p class="settings-preview-sub">Hesap ve görünüm ayarların</p>
+          </div>
+        </div>
+
+        <div class="settings-columns">
+          <div class="settings-zone">
+            <h2 class="settings-heading">Görünüm</h2>
+            <div class="settings-row">
+              <span class="settings-label">Koyu tema</span>
+              <button id="settings-theme" class="switch" type="button" role="switch" aria-checked="false" aria-label="Koyu temayı aç veya kapat">
+                <span class="switch-knob"></span>
+              </button>
+            </div>
+            <div class="settings-row">
+              <span class="settings-label">Bildirim sesi</span>
+              <button id="settings-sound" class="switch" type="button" role="switch" aria-checked="true" aria-label="Bildirim sesini aç veya kapat">
+                <span class="switch-knob"></span>
+              </button>
+            </div>
+          </div>
+
+          <div class="settings-zone">
+            <h2 class="settings-heading">Profil</h2>
+            <label class="settings-label" for="settings-name-input">Görünen ad</label>
+            <input id="settings-name-input" class="join-input" type="text" maxlength="24" autocomplete="off">
+            <p class="settings-label">Avatar rengi</p>
+            <div id="settings-colors" class="join-colors" role="radiogroup" aria-label="Avatar rengi"></div>
+            <button id="settings-save" class="btn btn-primary" type="button">Kaydet</button>
+            <p id="settings-saved" class="settings-saved" role="status" hidden>Kaydedildi.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,102 +1,122 @@
 # Neon Breaker
 
-A canvas Breakout that behaves like a small indie arcade release: paddle physics with a feel,
-five levels that speed up, power-ups raining down, particles, synthesized sound, and a
-leaderboard that survives a restart. Built in one pass by a team of Claude Code sub-agents from a
-single pasted prompt (`prompts/apps/neon-breaker.md`). All the on-screen text is Turkish.
+Küçük bir bağımsız arcade oyunu gibi oynanan, canvas üzerine kurulu bir Breakout: gerçek bir his
+veren raket fiziği, gittikçe hızlanan beş bölüm, yağmur gibi düşen güçlendirmeler, parçacıklar,
+sentezlenmiş ses, beş başarım ve yeniden başlatmayı atlatan bir skor tablosu. Tek bir prompt'tan,
+bir ajan takımı tarafından yapıldı:
+[`../../prompts/apps/neon-breaker.md`](../../prompts/apps/neon-breaker.md) dosyası olduğu gibi yeni
+bir Claude Code oturumuna yapıştırıldı. Node 24 ya da daha yenisi, Express ve Node'un içinde hazır
+gelen `node:sqlite` modülü: derleme adımı yok, framework yok, TypeScript yok, derlenmesi gereken
+hiçbir şey yok.
 
-## The two commands
+## Çalıştır
 
 ```bash
 npm install
-node server.js        # then open http://localhost:3000
+node server.js
 ```
 
-`PORT=3001 node server.js` runs it on another port. Node 24 or newer (the built-in `node:sqlite`
-module needs no flag there). `data.sqlite` is created and seeded with demo scores on first start;
-delete it and the app resets itself.
+Sonra http://localhost:3000 adresini aç. `PORT=3001 node server.js` yazarsan port değişir.
+Veritabanı ilk açılışta oluşturulup dolduruluyor; uygulamayı sıfırlamak için `data.sqlite`
+dosyasını sil. Sunucu `0.0.0.0` adresine bağlanıyor, yani aynı wifi'daki bir telefon açılışta
+yazdırılan LAN adresinden uygulamaya ulaşabiliyor.
 
-## Controls
+## Ekran görüntüleri
 
-| input | action |
-|---|---|
-| Left / Right arrow, A / D, or the mouse | move the paddle |
-| Space | launch the ball, and pause or resume |
-| Esc | pause |
-| M, or the SES button | mute and unmute |
-| Enter | submit your score on the game over panel |
-| drag on the canvas (touch) | move the paddle |
-| tap (touch) | launch the ball |
-
-## Features
-
-1. **Paddle physics with feel.** The bounce angle depends on where the ball lands on the paddle:
-   dead centre goes straight up, the outer edge deflects up to 60 degrees. Speed rises per level
-   and creeps up during a level. Collision is swept and sub-stepped, so a fast ball never tunnels
-   through a brick or a wall, and a near-flat or near-vertical loop is nudged back to a normal
-   angle.
-2. **Five levels**, each with its own pattern and neon palette: Başlangıç, Piramit, Kale, Kalp
-   Atışı, Son Kale. Three brick types: normal, two-hit (visibly cracked after the first hit) and
-   unbreakable. The levels live on the server and are served over `/api/levels`.
-3. **Power-ups** fall from broken bricks and are caught with the paddle: Çoklu Top, Geniş Raket,
-   Yavaş Top, Ekstra Can. Each timed one shows a countdown chip in the HUD and visibly stops when
-   the chip reaches zero.
-4. **Juice.** A particle burst in the brick's colour on every break, a screen shake when a life is
-   lost, and a growing combo multiplier drawn over the field.
-5. **Synthesized sound** through the Web Audio API, with no audio files: a paddle blip, a brick
-   tone pitched by row, a chime on catching a power-up, a thud on losing a life. The mute state
-   persists in localStorage.
-6. **Neon HUD** with lives, score and level, and a pause on Space or Esc: the field blurs, the
-   game state freezes exactly where it stood, and resuming runs a 3-2-1 countdown.
-7. **Leaderboard in SQLite** (name, score, level, date), top 10, with the fresh entry highlighted.
-   The POST validates the name and the score server-side and answers in Turkish.
-8. **Touch and responsive.** The paddle follows the finger, a tap launches the ball, and the
-   880x620 logical play field scales down to a 390px phone.
-
-## The API
-
-| route | answers |
-|---|---|
-| `GET /api/health` | `{ "ok": true, "name": "Neon Breaker", "levels": 5, "scores": 12 }` |
-| `GET /api/levels` | the five level definitions |
-| `GET /api/scores?limit=10` | the top 10, ordered by score |
-| `POST /api/scores` | 201 with the entry, its rank and the new top 10, or 400 with a Turkish message |
-
-## The team that built it
-
-| role | what it owned | model | effort |
-|---|---|---|---|
-| Orchestrator | the contract, integration, judgement, screenshots, the docs | Opus 5 | high |
-| Backend Lead | `server.js`, the SQLite schema and seed, the five levels, the leaderboard API and its validation | Sonnet | medium |
-| Frontend Lead | `public/index.html`, `public/style.css`, `public/app.js`, the whole canvas game | Sonnet | medium |
-| QA Lead | the acceptance checklist, the curl and browser checks, the bug hunt and the fixes | Sonnet | medium |
-
-The leads ran in parallel on files that do not overlap, which only worked because the
-orchestrator published the contract first. `BUILD-LOG.md` has that contract, the tests QA ran and
-every bug that was found and fixed.
-
-## Screenshots
-
-| | |
-|---|---|
-| ![Start menu](screenshots/01-desktop-menu.png) | ![Level 1 in play](screenshots/02-desktop-gameplay.png) |
-| Start menu, 1440x900 | Level 1 mid-play with the HUD, 1440x900 |
-| ![Level 4](screenshots/03-desktop-level4.png) | ![Phone](screenshots/04-phone-gameplay.png) |
-| Level 4 "Kalp Atışı" and the combo text, 1440x900 | The same game on a 390x844 phone |
-
-## Verified
-
-Every item was checked by the QA Lead and then re-checked independently by the orchestrator, in a
-headless Chromium driven over the DevTools protocol and with curl.
-
-| # | check | result |
+| | Masaüstü, 1440x900 | Telefon, 390x844 |
 |---|---|---|
-| 1 | `npm install` then `node server.js` start clean; the page shows the start screen with no console errors | PASS (zero console messages from `app.js` on load) |
-| 2 | Level 1 can be cleared, level 2 loads with a different pattern, and Space pauses with the ball frozen | PASS (ball position identical to 15 decimal places across a 1.2s pause, moving again after the 3-2-1 resume) |
-| 3 | A power-up drops, is caught, shows a countdown chip, and stops working when the chip hits zero | PASS (paddle 130 to 195 with the Geniş Raket chip at 6.1s, back to 130 with no chip when it expired) |
-| 4 | Through a full level the ball never passes through a brick, nor leaves the play field | PASS (6000 physics steps on level 5: 0 escapes, 0 bricks broken away from the ball) |
-| 5 | A bad POST returns HTTP 400 with a Turkish message, and the top 10 survives a restart | PASS (`{"ok":false,"error":"İsim 1 ile 12 karakter arasında olmalı."}`, and the posted score was still there after a real restart) |
-| 6 | At 390px with touch emulation, dragging moves the paddle and a tap launches the ball | PASS (paddle 375 to 627 px on a touch drag, ball `launched: true`) |
+| Başlangıç ekranı | `screenshots/01-start-desktop.png` | `screenshots/01-start-phone.png` |
+| Skor tablosu | `screenshots/02-skor-tablosu-desktop.png` | `screenshots/02-skor-tablosu-phone.png` |
+| Ayarlar | `screenshots/03-ayarlar-desktop.png` | `screenshots/03-ayarlar-phone.png` |
+| Oyunun ortası | `screenshots/04-oyun-desktop.png` | `screenshots/04-oyun-phone.png` |
 
-Clean-room check: `node_modules` deleted, `npm install` from scratch, server started, `/` answered
-HTTP 200 and `/api/health` answered JSON.
+![Başlangıç ekranı](screenshots/01-start-desktop.png)
+![Oyunun ortası](screenshots/04-oyun-desktop.png)
+
+## Özellikler
+
+1. **Ürün kabuğu.** Neon Breaker logosunun yer aldığı bir başlangıç ekranı, `localStorage` içinde
+   hatırlanan oyuncu adını taşıyan bir profil çipi, üç ekran arasında gezinme (Oyna, Skor tablosu,
+   Ayarlar), bölümler temizlendikçe açılan bir bölüm seçme ekranı ve devam, yeniden başla ile
+   ayarlar seçeneklerini sunan bir duraklatma menüsü.
+2. **His veren raket fiziği.** Sekme açısı, topun rakete nereden çarptığına bağlı: orta nokta topu
+   dümdüz yollar, kenarlar 60 dereceye kadar açar. Çarpışma; duvarlara, rakete ve yaşayan her
+   tuğlaya karşı süpürme yöntemiyle hesaplanır, böylece hızlı bir top asla içinden geçip kaçmaz.
+   Düz yatay bir döngüye takılan top ise 1.2 saniye sonra normal bir açıya itilir, yani bir tur
+   hiçbir zaman tıkanıp kalmaz.
+3. **Beş bölüm, üç tuğla tipi.** Başlangıç, Kafes, Kule, Kalkan ve Çekirdek; her birinin kendi
+   deseni ve 1.00'dan 1.45'e kadar çıkan kendi hız çarpanı var. Tuğlalar normal, iki vuruşluk
+   (ilk vuruşta gözle görülür biçimde çatlarlar) ya da kırılmaz olabiliyor. Beş bölümün hepsi
+   Ayarlar'daki etkin temanın neon paletiyle çizilir, yani tema değişince beşi birden yeniden
+   boyanır.
+4. **Güçlendirmeler.** Çoklu top, geniş raket, yavaş top ve ekstra can kırılan tuğlalardan düşer ve
+   raketle yakalanır. Süreli olanların her biri HUD'da bir geri sayım çipi gösterir ve çip sıfıra
+   indiğinde gözle görülür biçimde çalışmayı bırakır.
+5. **Şeker tadında ayrıntılar.** Her kırılışta tuğlanın renginde bir parçacık patlaması, can
+   kaybında ekran sarsıntısı, kombo yükseldikçe büyüyen kombo yazısı, topun arkasında bir iz ve Web
+   Audio ile sentezlenen ses: rakette bir bip, satıra göre perdelenen bir tuğla tonu, yakalamada bir
+   çıngırak, kayıpta bir gümbürtü. Hiç ses dosyası yok.
+6. **Beş başarım**, her biri kazanıldığı anda bir bildirim çıkarıyor ve Skor tablosu ekranında
+   kazanıldı ya da kilitli olarak listeleniyor: İlk Bölüm, Kayıpsız, Kombo 10, Güç Toplayıcı,
+   Beş Bin.
+7. **SQLite üzerinde bir skor tablosu.** İsim, skor, bölüm ve tarih; Skor tablosu ekranında ilk 10,
+   yeni gönderilen kayıt vurgulanmış halde. POST isteği ismi ve skoru sunucu tarafında doğrular:
+   boş bir isim, negatif bir skor ya da içinde işaretleme taşıyan bir isim Türkçe bir mesajla
+   reddedilir ve hiçbir şey yazılmaz.
+8. **Oyunu gerçekten değiştiren Ayarlar**, anında uygulanıyor ve `localStorage` içinde saklanıyor:
+   ses açık/kapalı, zorluk (kolay, orta, zor: top hızı ve başlangıç canları), tema (üç neon palet;
+   nebula, asit ve magma; tuğlaları, raketi ve arka planı sayfa yenilenmeden yeniden boyar) ve
+   raket boyu (kısa, orta, uzun). Ayrıca bir onay adımının ardındaki İlerlemeyi sıfırla.
+
+**Kontroller.** Raketi hareket ettir: fare, sol ve sağ ok tuşları ya da parmakla sürükleme. Topu
+fırlat: tıklama, dokunma veya yukarı ok. Duraklat: `Space` (ya da `Esc`, ya da HUD'daki duraklat
+düğmesi). Devam et: duraklatma menüsündeki "Devam", 3-2-1 geri sayımının ardından.
+
+Boş ve yükleniyor durumları boş bırakılmadı, tasarlandı: skor tablosu yüklenirken, API hata
+verdiğinde skor tablosu, henüz hiçbir şey kazanılmamışken başarım listesi ve bölüm seçme ekranındaki
+kilitli kartlar. Düzen masaüstünde yatay, telefonda dikey ve 390px genişlikte yana taşma olmadan
+oynanabilir. Kullanıcının gördüğü bütün metinler Türkçe, çünkü salon Türkçe konuşuyor. Kod ve kod
+yorumları İngilizce; bu belge Türkçe.
+
+## Takım
+
+İstem, bir Claude Code oturumunu ORKESTRATÖR yaptı. Önce sözleşmeyi yayımladı (dosya listesi, port,
+JSON şekilleriyle birlikte API yolları, bölüm tanımı, tur sonucu), sonra gerçek ve birbirinden ayrı
+ajan süreçleri olarak üç lider alt ajan başlattı. Backend ile Frontend paralel çalıştı; sözleşmeye
+karşı, birbirlerine karşı değil.
+
+| Rol | Model | Efor | Sorumluluğu |
+|---|---|---|---|
+| Orkestratör | Fable 5.1 | high | Sözleşme, entegrasyon, görsel inceleme, bu README ve `BUILD-LOG.md` |
+| Backend Lideri | Sonnet | medium | `package.json`, `server.js`, `node:sqlite` şeması, tohum verisi, skor tablosu API'si ve doğrulaması, beş bölüm ve beş başarım |
+| Frontend Lideri | Sonnet | medium | `public/index.html`, `public/style.css`, `public/app.js`: kabuk, canvas oyun döngüsü, fizik, güçlendirmeler, parçacıklar, ses ve HUD |
+| QA Lideri | Sonnet | medium | Kabul kontrol listesini gerçek tarayıcı ve curl kontrollerine çevirdi; içinden geçip kaçan topları, takılan topları ve skor tablosu girdi istismarını avladı, bozuk olanı düzeltti |
+| Frontend işçileri | Sonnet | low ila medium | Orkestratörün yapılan işi inceledikten sonra istediği üç hedefli düzeltme turu: Türkçe tipografi, düzen, skor tablosundaki skorlar ve oyna ipucu |
+
+İlk birleştirmede bulunan altı hata, teslimden sonraki bağımsız doğrulama turunda çıkan üç hata ve
+hikayenin tamamı [BUILD-LOG.md](BUILD-LOG.md) içinde.
+
+## Doğrulandı
+
+Her madde QA Lideri tarafından gerçek bir tarayıcıda ya da curl ile kontrol edildi, ardından
+orkestratör tarafından temiz bir kurulumda yeniden kontrol edildi. 4. maddeyi bağımsız doğrulama
+turu bir yanlış geçiş olarak yakaladı; aşağıdaki sonuç, `BUILD-LOG.md` içindeki 7. maddenin
+düzeltmesinden sonraki halidir.
+
+| # | Kontrol | Sonuç |
+|---|---|---|
+| 1 | `npm install` ve ardından `node server.js` temiz açılıyor, başlangıç ekranı logosuyla yükleniyor, üç menü ekranı da açılıyor ve tarayıcı konsolu sessiz | geçti |
+| 2 | 1. bölüm temizlenebiliyor: son tuğla kırılıyor, farklı desenli 2. bölüm yükleniyor, bölüm seçmede kilidi açılıyor ve bir başarım bildirimi çıkıyor | geçti |
+| 3 | `Space` oyunu duraklatıyor ve top yerinde donuyor, devam 3-2-1 geri sayımından sonra kaldığı yerden sürdürüyor, bölüm boyunca top ne içinden geçip kaçıyor ne de oyun alanından çıkıyor | geçti |
+| 4 | Bir güçlendirme düşüyor, yakalanıyor, geri sayım çipi gösteriyor ve sıfırda gözle görülür biçimde çalışmayı bırakıyor | geçti, düzeltmeden sonra: yavaş topta 260 -> 156 -> 261.5 piksel/saniye |
+| 5 | Ayarlar'da tema anında yeniden boyuyor, zorluk zor topu hızlandırıyor, sesi kapatmak susturuyor ve sayfa yenilendiğinde dört ayar da korunuyor | geçti |
+| 6 | Boş isim ve negatif skorla `POST /api/scores` Türkçe bir mesajla HTTP 400 döndürüyor, `GET /api/scores` yeniden başlatmayı atlatan bir ilk 10 döndürüyor ve 390px'te sürükleme raketi hareket ettiriyor | geçti |
+| 7 | Temiz kontrol: `rm -rf node_modules`, `npm install`, açılış, `GET /` 200 döndürüyor ve `/api/health` JSON cevap veriyor | geçti |
+
+3. madde için kanıt: en yoğun bölümde 1500 fizik adımı boyunca saniyede 2000 ila 9700 piksel hızla
+sürülen top sol, sağ ve üst duvarları sıfır kez geçti; zorla yatayın yakınına sokulan bir döngü ise
+yaklaşık 1.2 saniye içinde kendiliğinden düzeldi. 6. madde için kanıt: 5000 karakterlik bir isim,
+yalnızca boşluklardan oluşan bir isim, `<script>` ve `<img onerror=...>` içeren isimler, metin
+olarak gönderilen bir skor, `1e999`, `1.5`, negatif bir skor, bölüm 0, bölüm 99, null bir gövde,
+dizi bir gövde ve eksik content-type; hepsi Türkçe bir mesajla HTTP 400 alarak reddedildi ve satır
+sayısı hiç kıpırdamadı.

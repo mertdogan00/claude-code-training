@@ -1,13 +1,14 @@
 {
-  "name": "data-dashboard",
+  "name": "satis-analitik-paneli",
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "description": "Sales analytics dashboard over a CSV, Node 24 + Express + node:sqlite",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.19.2",
-    "chart.js": "^4.4.4"
+    "chart.js": "^4.4.7",
+    "express": "^4.21.2"
   }
 }

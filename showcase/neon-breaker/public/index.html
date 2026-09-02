@@ -1,85 +1,191 @@
-<!DOCTYPE html>
-<html lang="tr">
+<!doctype html>
+<html lang="tr" data-theme="nebula">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Neon Breaker</title>
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
-<div id="app">
+<body data-screen="start">
 
-  <div id="stage">
-    <canvas id="game" width="880" height="620"></canvas>
+<header class="topbar">
+  <div class="wordmark"><span class="wordmark-neon">NEON</span><span class="wordmark-solid">BREAKER</span></div>
+  <nav class="topnav" aria-label="Ana gezinme">
+    <button class="navlink" id="nav-play" data-nav="start">Oyna</button>
+    <button class="navlink" id="nav-scores" data-nav="scores">Skor tablosu</button>
+    <button class="navlink" id="nav-settings" data-nav="settings">Ayarlar</button>
+  </nav>
+  <button class="profile-chip" id="profile-chip" title="İsmini değiştir">
+    <span class="avatar" id="avatar-initial">?</span>
+    <span class="player-name" id="player-name">Oyuncu</span>
+  </button>
+</header>
 
-    <!-- HUD overlay, always on top of the canvas during play -->
-    <div id="hud" class="hidden">
-      <div id="hudLives" class="hud-group"></div>
-      <div id="hudScore" class="hud-group">0</div>
-      <div id="hudLevel" class="hud-group"></div>
-      <div id="hudChips" class="hud-group"></div>
-      <button id="muteBtn" class="hud-btn" type="button" aria-label="Sessize al">SES</button>
+<main class="screens">
+
+  <section class="screen" id="screen-start" data-screen-name="start">
+    <div class="start-hero">
+      <div class="logo-big">
+        <span class="logo-neon">NEON</span>
+        <span class="logo-solid">BREAKER</span>
+      </div>
+      <p class="hero-tag">Karoları kır, komboyu büyüt, neon ışığı sönmesin.</p>
+      <button class="btn-primary btn-play" id="btn-oyna">Oyna</button>
+      <p class="hero-player">Hoş geldin, <strong id="hero-player-name">Oyuncu</strong></p>
     </div>
 
-    <div id="comboText" class="fx-text"></div>
+    <div class="level-select" id="screen-levels" data-screen-name="levels">
+      <h2 class="section-title">Bölüm seç</h2>
+      <div class="level-grid" id="level-grid"></div>
+    </div>
+  </section>
 
-    <!-- Start menu -->
-    <section id="menuScreen" class="screen">
-      <h1 class="title">NEON BREAKER</h1>
-      <p class="pitch">Karanlık bir arenada ışıklı tuğlaları kır, zinciri koparma.</p>
-      <div class="menu-actions">
-        <button id="btnStart" class="btn btn-primary" type="button">Başla</button>
-        <button id="btnBoard" class="btn" type="button">Sıralama</button>
-        <button id="btnHow" class="btn" type="button">Nasıl Oynanır</button>
+  <section class="screen" id="screen-game" data-screen-name="game">
+    <div class="hud">
+      <div class="hud-left">
+        <span class="hud-item">Skor <strong id="hud-score">0</strong></span>
+        <span class="hud-item">Can <strong id="hud-lives">3</strong></span>
+        <span class="hud-item">Bölüm <strong id="hud-level">1</strong></span>
       </div>
-      <div id="howPanel" class="panel hidden">
-        <h2>Kontroller</h2>
-        <ul>
-          <li>Sol / Sağ ok veya A / D: raketi hareket ettir</li>
-          <li>Fare: raketi hareket ettir</li>
-          <li>Dokunmatik: parmağını sürükle, dokunarak topu fırlat</li>
-          <li>Boşluk: topu fırlat / duraklat</li>
-          <li>Esc: duraklat</li>
-          <li>M: sesi aç / kapat</li>
-          <li>Enter: skoru gönder</li>
-        </ul>
-        <button id="btnHowClose" class="btn" type="button">Kapat</button>
+      <div class="hud-center" id="hud-combo"></div>
+      <div class="hud-right">
+        <div class="powerup-chips" id="powerup-chips"></div>
+        <button class="btn-icon" id="btn-pause" title="Duraklat">II</button>
       </div>
-      <div id="boardPanel" class="panel hidden">
-        <h2>Sıralama</h2>
-        <div id="boardTableWrap"></div>
-        <button id="btnBoardClose" class="btn" type="button">Kapat</button>
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="game-canvas"></canvas>
+      <div class="pause-menu hidden" id="pause-menu">
+        <div class="pause-box">
+          <h2>Duraklatıldı</h2>
+          <button class="btn-primary" id="btn-resume">Devam</button>
+          <button class="btn-secondary" id="btn-restart">Yeniden başla</button>
+          <button class="btn-secondary" id="btn-pause-settings">Ayarlar</button>
+        </div>
       </div>
-    </section>
+      <div class="level-clear hidden" id="level-clear-banner">
+        <div class="level-clear-box">
+          <h2 id="level-clear-title">Bölüm tamamlandı</h2>
+          <p id="level-clear-score"></p>
+          <button class="btn-primary" id="btn-next-level">Sonraki bölüm</button>
+        </div>
+      </div>
+      <div class="game-over hidden" id="game-over-banner">
+        <div class="game-over-box">
+          <h2>Oyun bitti</h2>
+          <p id="game-over-score"></p>
+          <p id="game-over-rank"></p>
+          <button class="btn-primary" id="btn-again">Tekrar oyna</button>
+          <button class="btn-secondary" id="btn-to-scores">Skor tablosuna git</button>
+        </div>
+      </div>
+    </div>
+    <p class="touch-hint" hidden>Dokun ve sürükleyerek raketi hareket ettir. Başlatmak için dokun.</p>
+  </section>
 
-    <!-- Pause overlay -->
-    <section id="pauseScreen" class="screen hidden">
-      <h2>DURAKLATILDI</h2>
-      <p class="hint">Devam etmek için Boşluk veya Esc</p>
-      <div id="countdownText" class="countdown hidden"></div>
-    </section>
+  <section class="screen" id="screen-scores" data-screen-name="scores">
+    <h2 class="section-title">Skor tablosu</h2>
+    <div class="scores-panel" id="scores-panel">
+      <div class="loading-state" id="scores-loading">
+        <div class="spinner-neon"></div>
+        <p>Skorlar yükleniyor...</p>
+      </div>
+    </div>
+    <h2 class="section-title">Başarımlar</h2>
+    <div class="achievements-grid" id="achievements-grid"></div>
+  </section>
 
-    <!-- Level transition card -->
-    <section id="transitionScreen" class="screen hidden">
-      <h2 id="transitionTitle"></h2>
-      <p id="transitionSub"></p>
-    </section>
+  <section class="screen" id="screen-settings" data-screen-name="settings">
+    <h2 class="section-title">Ayarlar</h2>
+    <div class="settings-panel">
 
-    <!-- Game over / win panel -->
-    <section id="endScreen" class="screen hidden">
-      <h2 id="endTitle"></h2>
-      <p id="endScore"></p>
-      <form id="scoreForm" autocomplete="off">
-        <input id="nameInput" type="text" maxlength="12" placeholder="İsim (en fazla 12 karakter)" aria-label="İsim">
-        <button id="btnSubmitScore" class="btn btn-primary" type="submit">Gönder</button>
-        <span id="scoreError" class="field-error"></span>
-      </form>
-      <div id="endTableWrap"></div>
-      <button id="btnRestart" class="btn" type="button">Ana Menü</button>
-    </section>
+      <div class="setting-row">
+        <div class="setting-label">
+          <span>Ses</span>
+          <span class="setting-desc">Efektleri aç veya kapat</span>
+        </div>
+        <button class="toggle" id="setting-sound" role="switch" aria-checked="true">
+          <span class="toggle-knob"></span>
+        </button>
+      </div>
 
+      <div class="setting-row">
+        <div class="setting-label">
+          <span>Zorluk</span>
+          <span class="setting-desc">Top hızını ve başlangıç canını değiştirir</span>
+        </div>
+        <div class="segmented" id="setting-difficulty" data-value="orta">
+          <button data-value="kolay">Kolay</button>
+          <button data-value="orta">Orta</button>
+          <button data-value="zor">Zor</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-label">
+          <span>Tema</span>
+          <span class="setting-desc">Neon renk paleti</span>
+        </div>
+        <div class="segmented" id="setting-theme" data-value="nebula">
+          <button data-value="nebula">Nebula</button>
+          <button data-value="asit">Asit</button>
+          <button data-value="magma">Magma</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-label">
+          <span>Raket boyu</span>
+          <span class="setting-desc">Raket genişliğini değiştirir</span>
+        </div>
+        <div class="segmented" id="setting-paddle" data-value="orta">
+          <button data-value="kisa">Kısa</button>
+          <button data-value="orta">Orta</button>
+          <button data-value="uzun">Uzun</button>
+        </div>
+      </div>
+
+      <div class="setting-row setting-row-danger">
+        <div class="setting-label">
+          <span>İlerlemeyi sıfırla</span>
+          <span class="setting-desc">Tüm bölüm ilerlemeni ve başarımlarını siler</span>
+        </div>
+        <button class="btn-danger" id="btn-reset-progress">Sıfırla</button>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<nav class="bottom-tabs" aria-label="Alt gezinme">
+  <button class="tab" data-nav="start">
+    <span class="tab-icon" data-icon="play"></span>
+    <span>Oyna</span>
+  </button>
+  <button class="tab" data-nav="scores">
+    <span class="tab-icon" data-icon="scores"></span>
+    <span>Skor</span>
+  </button>
+  <button class="tab" data-nav="settings">
+    <span class="tab-icon" data-icon="settings"></span>
+    <span>Ayarlar</span>
+  </button>
+</nav>
+
+<div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+
+<div class="rename-modal hidden" id="rename-modal">
+  <div class="rename-box">
+    <h2>İsmini değiştir</h2>
+    <input type="text" id="rename-input" maxlength="12" placeholder="Oyuncu adı">
+    <div class="rename-actions">
+      <button class="btn-secondary" id="rename-cancel">Vazgeç</button>
+      <button class="btn-primary" id="rename-save">Kaydet</button>
+    </div>
   </div>
 </div>
+
 <script src="app.js"></script>
 </body>
 </html>

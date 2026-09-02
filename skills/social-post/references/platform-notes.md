@@ -1,17 +1,17 @@
-# Per-platform rules
+# Platform kuralları
 
 ## LinkedIn
-- First line must survive the "see more" fold: a claim or a number, never a greeting.
-- 4-6 paragraphs of 1-2 sentences; white space is part of the writing.
-- Hashtags: 3 at most, at the end, specific over generic.
-- Close with a genuine question that invites comments, not "thoughts?".
+- İlk satır "daha fazla göster" katlanmasından sağ çıkmalı: bir iddia ya da bir sayı, asla selamlama.
+- 1-2 cümlelik 4-6 paragraf; boşluk da yazının bir parçası.
+- Hashtag: en fazla 3 tane, sonda, genel olan yerine özel olan.
+- Sonda yorum davet eden gerçek bir soru sor, "ne dersiniz?" tarzı bir kalıp değil.
 
 ## Instagram
-- Caption carries feeling; keep it 2-3 sentences with line breaks between them.
-- Warmer, first-person voice; the image does the arguing.
-- Exactly 5 hashtags, last line, mixing one broad + four specific.
+- Duyguyu açıklama taşır; aralarına satır boşluğu koyarak 2-3 cümlede tut.
+- Daha sıcak, birinci ağızdan bir ses; asıl savunmayı görsel yapar.
+- Son satırda tam 5 hashtag; biri geniş, dördü özel olacak şekilde karıştır.
 
 ## X
-- Hard cap 280 characters; aim under 240 so quotes have room.
-- One angle only: the sharpest sentence from the source, not a summary.
-- No hashtags, no links unless the source is ABOUT the link.
+- Katı sınır 280 karakter; alıntıya yer kalsın diye 240'ın altını hedefle.
+- Tek bir açı: kaynaktaki en keskin cümle, özet değil.
+- Hashtag yok, kaynağın kendisi o bağlantıyla İLGİLİ değilse bağlantı da yok.

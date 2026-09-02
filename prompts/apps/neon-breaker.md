@@ -1,87 +1,105 @@
-# Mega prompt · Neon Breaker (an arcade canvas Breakout, built by a team)
+# Mega prompt · Neon Breaker (bir takımın kurduğu arcade canvas Breakout)
 
-One shot, fully autonomous, and Claude Code does not build it alone: it forms a team of
-sub-agents and runs them in parallel. Works in an empty folder, no data file needed. Paste the
-block below AS-IS into a fresh Claude Code session.
-
----
-
-> **You are the ORCHESTRATOR.** Drive this job from start to finish WITHOUT stopping for my
-> confirmation at any point. First print a numbered plan (max 8 lines) so the room can follow
-> on screen, then execute it. This runs live in front of an audience: narrate every step.
->
-> STEP 1, PUBLISH THE CONTRACT before anyone writes a line: the file list, the port, the API
-> routes with their JSON shapes, the shape of a level definition and of a round result. Print
-> it on screen, then write it into `BUILD-LOG.md`. Parallel work fits only because of this.
->
-> STEP 2, FORM THE TEAM, FOR REAL. Use your Agent tool to spawn three LEAD sub-agents and run
-> them in parallel wherever their work is independent:
-> - **Backend Lead**: `server.js`, the SQLite scores table, seeded demo scores, the leaderboard
->   API and its input validation.
-> - **Frontend Lead**: `public/index.html`, `public/style.css`, `public/app.js`, the canvas
->   game loop, physics, power-ups, particles, sound, HUD and menus.
-> - **QA Lead**: turns the checklist below into real checks, starts the server, plays in a
->   browser, hits the API with curl, reports pass or fail per item and fixes what fails. QA
->   hunts three bugs on purpose: tunneling, a stuck ball, leaderboard input abuse.
-> A lead may spawn a worker or two. You do NOT write the app yourself: you integrate and
-> run QA last.
->
-> THE JOB: build "Neon Breaker", a canvas Breakout that feels like a real indie arcade release,
-> not a school exercise: paddle physics with a feel, levels that speed up, power-ups raining
-> down, particles, synthesized sound, and a leaderboard that survives a restart.
->
-> THE STACK, non-negotiable, no build step and no framework:
-> - ONE folder, created here, holding exactly: `package.json`, `server.js`, `public/`
->   (`index.html`, `style.css`, `app.js`), `data.sqlite`, `README.md`, `BUILD-LOG.md`.
-> - `package.json` carries `"type": "module"` and a `start` script running `node server.js`.
-> - `server.js`: Node 24, Express from npm, and the BUILT-IN `node:sqlite` module
->   (`import { DatabaseSync } from 'node:sqlite'`). Nothing native compiles on this machine.
-> - `public/` is plain HTML, CSS and JavaScript, the play field on a `<canvas>`: no bundler, no
->   CSS framework, no game engine. Sound is synthesized with Web Audio, no audio files.
-> - `data.sqlite` is created and seeded with demo scores on FIRST START; deleting it resets it.
-> - The only two commands anyone ever types: `npm install`, then `node server.js`, serving
->   http://localhost:3000. `PORT=3001 node server.js` must override the port.
-> - All user-facing UI text in TURKISH; code, comments, `README.md` and `BUILD-LOG.md` in
->   English.
->
-> FEATURES, all required:
-> 1. Paddle physics with feel: the bounce angle depends on WHERE the ball hits the paddle
->    (centre straight, edges up to 60 degrees), speed rises per level, collision is swept so a
->    fast ball never tunnels, and a flat horizontal loop is nudged back to a normal angle.
-> 2. Five levels with distinct patterns and palettes, a speed ramp per level, and three brick
->    types: normal, two-hit, unbreakable.
-> 3. Power-ups falling from broken bricks (çoklu top, geniş raket, yavaş top, ekstra can),
->    caught with the paddle, each showing a countdown chip in the HUD.
-> 4. Juice: particle bursts on every break, a screen shake on a lost life, growing combo text.
-> 5. Synthesized sound (paddle blip, brick tone pitched by row, chime, thud), mute toggle.
-> 6. Neon HUD with lives, score and level, and a pause on Space or Esc: blurred overlay, frozen
->    game state, a 3-2-1 countdown on resume.
-> 7. Leaderboard in SQLite (name, score, level, date), top 10, the fresh entry highlighted;
->    the POST validates the name and the score server-side.
-> 8. Touch: the paddle follows the finger, a tap launches the ball, the canvas scales to 390px.
->
-> ACCEPTANCE CHECKLIST, the QA Lead verifies each ON SCREEN or with curl and reports pass/fail:
-> 1. `npm install` then `node server.js` start clean; http://localhost:3000 shows the start
->    screen with no console errors.
-> 2. Level 1 can be cleared: the last brick breaks, level 2 loads with a different pattern, and
->    Space pauses mid-level with the ball frozen in place.
-> 3. A power-up drops in level 1, is caught, shows a countdown chip, and visibly stops working
->    when the chip reaches zero.
-> 4. Through a full level the ball never passes through a brick, nor leaves the play field.
-> 5. `curl -s -X POST localhost:3000/api/scores -H 'content-type: application/json' -d
->    '{"name":"","score":-5}'` returns HTTP 400 with a Turkish message, and
->    `curl -s localhost:3000/api/scores` returns a valid top-10 JSON that survives a restart.
-> 6. At 390px width with touch emulation, dragging moves the paddle and a tap launches the ball.
->
-> DEFINITION OF DONE: every checklist item green; `README.md` with the product name, the two
-> commands, the controls, the features and the team; `BUILD-LOG.md` with the plan, the team,
-> the contract, the tests QA ran and every bug fixed. Close with the run command.
+Tek atışta, tamamen otonom ve Claude Code bunu tek başına kurmuyor: alt ajanlardan bir takım
+kurup onları paralel çalıştırıyor. Boş bir klasörde de çalışır, veri dosyası gerekmez. Aşağıdaki
+bloğu OLDUĞU GİBİ taze bir Claude Code oturumuna yapıştır.
 
 ---
 
-**Stage note:** while the team works, ask the room: "the physics worker and the HUD worker are
-writing into the same app in the same second, so what stops them from colliding?" The answer is
-the contract the orchestrator published first. When it finishes, run `npm install`, then
-`node server.js`, open http://localhost:3000 and let an audience member play level 1 on the
-projector and try to catch the first power-up. Fallback if the build stalls:
-`cd showcase/neon-breaker` and `node server.js`.
+> **Sen ORKESTRATÖRSÜN.** Bu işi baştan sona, hiçbir noktada benim onayımı BEKLEMEDEN yürüt.
+> Önce numaralı bir plan yazdır (en fazla 8 satır) ki salon ekrandan takip edebilsin, sonra onu
+> uygula. Bu iş bir salonun önünde canlı akıyor: her adımı anlatarak ilerle.
+>
+> ADIM 1, SÖZLEŞMEYİ YAYIMLA, daha kimse tek satır yazmadan: dosya listesi, port, JSON
+> şekilleriyle birlikte API yolları, bir seviye tanımının ve bir tur sonucunun şekli. Ekrana
+> yazdır, sonra `BUILD-LOG.md` içine yaz. Paralel çalışma ancak bunun sayesinde birbirine oturur.
+>
+> ADIM 2, TAKIMI GERÇEKTEN KUR. Agent aracınla üç LİDER alt ajan aç ve işleri birbirinden
+> bağımsız olduğu her yerde onları paralel çalıştır:
+> - **Backend Lideri**: `server.js`, SQLite skor tablosu, tohumlanmış demo skorlar, skor tablosu
+>   API'si ve girdi doğrulaması.
+> - **Frontend Lideri**: `public/index.html`, `public/style.css`, `public/app.js`, menü ve ayarlar
+>   kabuğu, canvas oyun döngüsü, fizik, güçlendirmeler, parçacıklar, ses ve HUD.
+> - **QA Lideri**: aşağıdaki kontrol listesini gerçek kontrollere çevirir, sunucuyu başlatır,
+>   tarayıcıda oynar, API'ye curl ile vurur, her madde için geçti mi kaldı mı raporlar ve kalanı
+>   düzeltir; topun tuğlaların içinden geçmesini, topun takılıp kalmasını ve skor tablosu
+>   girdisinin kötüye kullanılmasını bilerek avlar.
+> Bir lider kendine bir işçi açabilir. Uygulamayı sen yazmıyorsun: parçaları birleştirir ve en
+> sonda QA'yı çalıştırırsın.
+>
+> İŞ: "Neon Breaker" adında bir canvas Breakout kur; okul ödevi gibi değil, gerçek bir bağımsız
+> arcade oyunu gibi hissettirsin: dokunuşu olan raket fiziği, gittikçe hızlanan seviyeler, yağan
+> güçlendirmeler, parçacıklar, sentezlenmiş ses ve yeniden başlatmayı atlatan bir skor tablosu.
+>
+> ÜRÜN KABUĞU, pazarlık yok: bu bir demo değil, yayımlanmış bir oyun gibi durmalı. Logosuyla
+> gerçek bir başlangıç ekranı ve oyuncu adını taşıyan bir profil çipi; en az üç ekrana uzanan
+> menüler; oyunu gerçekten değiştiren bir ayarlar ekranı; tek bir vurgu rengiyle uyumlu tek bir
+> neon palet; Türkçe arayüz metni; klavye ve dokunmatik dostu; 390px'te oynanabilir.
+>
+> YIĞIN, pazarlık yok, derleme adımı yok, framework yok:
+> - TEK klasör, burada oluşturulur, içinde tam olarak şunlar: `package.json`, `server.js`,
+>   `public/` (`index.html`, `style.css`, `app.js`), `data.sqlite`, `README.md`, `BUILD-LOG.md`.
+> - `package.json` içinde `"type": "module"` ve `node server.js` çalıştıran bir `start` betiği var.
+> - `server.js`: Node 24, npm'den Express ve YERLEŞİK `node:sqlite` modülü
+>   (`import { DatabaseSync } from 'node:sqlite'`). Bu makinede derlenen bir şey yok.
+> - `public/` düz HTML, CSS ve JavaScript, oyun alanı bir `<canvas>` üzerinde: bundler yok, CSS
+>   framework'ü yok, oyun motoru yok. Ses Web Audio ile sentezlenir, ses dosyası kullanılmaz.
+> - `data.sqlite` İLK AÇILIŞTA oluşturulur ve demo skorlarla tohumlanır; silmek sıfırlar.
+> - Kimsenin yazacağı tek iki komut: `npm install`, sonra `node server.js`, adres
+>   http://localhost:3000. `PORT=3001 node server.js` portu geçersiz kılabilmeli.
+> - Kullanıcının gördüğü bütün arayüz metni TÜRKÇE; `README.md` ve `BUILD-LOG.md` de TÜRKÇE
+>   yazılır; sadece kodun kendisi ve kod yorumları İngilizce kalır.
+>
+> ÖZELLİKLER, hepsi zorunlu:
+> 1. Kabuk: Neon Breaker logosunun olduğu ve oyuncu adını localStorage'da hatırlayan bir
+>    başlangıç ekranı, üç ekrana uzanan bir menü (Oyna, Skor tablosu, Ayarlar), seviyeler
+>    geçildikçe açılan bir seviye seçimi ve Space ile açılan bir duraklatma menüsü (devam,
+>    yeniden başla, ayarlar).
+> 2. Dokunuşu olan raket fiziği: sekme açısı topun rakete NEREDEN çarptığına bağlı (ortada düz,
+>    kenarlarda 60 dereceye kadar), çarpışma süpürmeli hesaplanır ki hızlı top tuğlaların
+>    içinden geçmesin, ve yatayda düzleşen bir döngü normal bir açıya doğru itilir.
+> 3. Kendi deseni ve paleti olan beş seviye, her seviyede bir hız rampası ve üç tuğla türü:
+>    normal, iki vuruşluk, kırılmaz.
+> 4. Kırılan tuğlalardan düşen güçlendirmeler (çoklu top, geniş raket, yavaş top, ekstra can),
+>    raketle yakalanır, her biri neon HUD'da geri sayan bir çip gösterir.
+> 5. Tat: her kırılışta parçacık patlaması, can kaybında ekran sarsıntısı, büyüyen kombo yazısı
+>    ve sentezlenmiş ses (raket sesi, satıra göre perdesi değişen tuğla tonu, çıngırak, güm).
+> 6. Beş başarım (ilk seviyeyi geçmek, can kaybetmeden bitirmek, 10'luk kombo, tüm
+>    güçlendirmeleri yakalamak, 5000 skor), her biri kazanıldığı anda bir toast ile bildirilir.
+> 7. SQLite'ta skor tablosu (isim, skor, seviye, tarih), Skor tablosu ekranında ilk 10 ve yeni
+>    girilen kayıt vurgulu; POST ismi ve skoru sunucu tarafında doğrular.
+> 8. Oyunu gerçekten değiştiren, localStorage'da saklanan ve anında uygulanan Ayarlar: ses
+>    açık/kapalı, zorluk (kolay / orta / zor, top hızını ve can sayısını değiştirir), tema (üç
+>    neon palet) ve raket boyu. Dokunmatik: raket parmağı takip eder, dokunuş topu fırlatır.
+>
+> KABUL KONTROL LİSTESİ, QA Lideri her maddeyi EKRANDA ya da curl ile doğrular ve geçti/kaldı
+> raporlar:
+> 1. `npm install` sonra `node server.js` temiz açılır; http://localhost:3000 logosuyla
+>    başlangıç ekranını gösterir, üç menü ekranı da açılır ve konsol sessizdir.
+> 2. 1. seviye geçilebiliyor: son tuğla kırılır, 2. seviye farklı bir desenle yüklenir ve seviye
+>    seçiminde açılır, bir başarım toast'u çıkar.
+> 3. Space duraklatma menüsünü açar ve top olduğu yerde donar, devam 3-2-1 geri sayımından sonra
+>    oyunu sürdürür, tam bir seviye boyunca top ne tuğlaların içinden geçer ne de alanın dışına
+>    kaçar.
+> 4. Bir güçlendirme düşer, yakalanır, geri sayan bir çip gösterir ve sıfırda gözle görülür
+>    biçimde etkisini yitirir.
+> 5. Ayarlar'da tema değiştirmek tuğlaları, raketi ve arka planı anında yeniden boyar, zorluk zor
+>    topu gözle görülür biçimde hızlandırır, sesi kapatmak sesi susturur, sayfa yenilenince dört
+>    ayar da yerinde kalır.
+> 6. `curl -s -X POST localhost:3000/api/scores -H 'content-type: application/json' -d
+>    '{"name":"","score":-5}'` Türkçe bir HTTP 400 döndürür, `curl -s localhost:3000/api/scores`
+>    yeniden başlatmayı atlatan bir ilk 10 JSON'u döndürür ve 390px'te sürükleme raketi hareket
+>    ettirir.
+>
+> BİTTİ TANIMI: kontrol listesinin her maddesi yeşil; `README.md` içinde ürün adı, iki
+> komut, kontroller, özellikler ve takım; `BUILD-LOG.md` içinde plan, takım, sözleşme, QA'nın
+> yaptığı testler ve düzeltilen her hata. Sonu çalıştırma komutuyla bağla.
+
+---
+
+**Sahne notu:** takım çalışırken salona sor: "fizik işçisiyle HUD işçisi aynı saniyede aynı
+uygulamanın içine yazıyor, peki onların birbirine çarpmasını ne engelliyor?" Cevap, orkestratörün
+en başta yayımladığı sözleşme. İş bitince `npm install`, sonra `node server.js` çalıştır,
+http://localhost:3000 adresini aç, başlangıç ekranına bir isim yaz ve salondan birine 1. seviyeyi
+projeksiyonda oynat; tepkiyi görmek için oyunun ortasında Ayarlar'dan temayı değiştir. Kurulum
+takılırsa yedek: `cd showcase/neon-breaker` ve `node server.js`.
